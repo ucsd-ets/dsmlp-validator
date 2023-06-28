@@ -3,5 +3,9 @@ from abc import ABCMeta, abstractmethod
 
 class Logger(metaclass=ABCMeta):
     @abstractmethod
-    def log(self, message):
+    def debug(self, message: str):
+        pass
+
+    @abstractmethod
+    def info(self, message: str):
         pass

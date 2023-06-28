@@ -43,5 +43,8 @@ class FakeLogger(Logger):
     def __init__(self) -> None:
         self.messages = []
 
-    def log(self, message):
-        self.messages.append(message)
+    def debug(self, message):
+        self.messages.append(f"DEBUG {message}")
+
+    def info(self, message):
+        self.messages.append(f"INFO {message}")

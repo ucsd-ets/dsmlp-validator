@@ -46,7 +46,7 @@ class TestDirCreate:
             })
 
         assert_that(response, equal_to({"response": {"allowed": True, "status": {"message": "Allowed"}}}))
-        assert_that(self.logger.messages, contains_inanyorder("Validating request namespace=user1"))
+        assert_that(self.logger.messages, contains_inanyorder("INFO Validating request namespace=user1"))
 
     def test_user_not_allowed_to_run_pod_with_different_uid(self):
         response = self.when_validate(
@@ -64,7 +64,7 @@ class TestDirCreate:
         assert_that(response, equal_to({"response": {"allowed": False, "status": {
                     "message": "user2 is not allowed to use uid 3"}}}))
         assert_that(self.logger.messages, has_item(
-            "Denied request username=user2 namespace=user2 uid=2 spec.securityContext.runAsUser=3"))
+            "INFO Denied request username=user2 namespace=user2 uid=2 spec.securityContext.runAsUser=3"))
 
     def test_system_can_use_any_uid(self):
         response = self.when_validate(
@@ -81,6 +81,8 @@ class TestDirCreate:
 
         assert_that(response, equal_to({"response": {"allowed": True, "status": {
                     "message": "Allowed"}}}))
+        assert_that(self.logger.messages, has_item(
+            "INFO Allowed namespace=kube-system"))
 
     def when_validate(self, json):
         validator = Validator(self.awsed_client, self.kube, self.logger)

@@ -16,11 +16,14 @@ class Validator:
 
     def validate_request(self, request):
         username = request['request']['object']['metadata']['namespace']
-        self.logger.log(f"Validating request namespace={username}")
+        self.logger.info(f"Validating request namespace={username}")
+
         namespace = self.kube.get_namespace(username)
         labels = namespace.labels
         if not 'k8s-sync' in labels:
+            self.logger.info(f"Allowed namespace={username}")
             return self.admission_response(True, "Allowed")
+
         user = self.awsed.describe_user(username)
         # username = request['request']['userInfo']['username']
         if username.startswith('system:'):
@@ -29,7 +32,7 @@ class Validator:
         spec = request['request']['object']['spec']
         uid = spec['securityContext']['runAsUser']
         if user.uid != uid:
-            self.logger.log(
+            self.logger.info(
                 f"Denied request username={username} namespace={username} uid={user.uid} spec.securityContext.runAsUser={uid}")
             return self.admission_response(False, f"{username} is not allowed to use uid {uid}")
         # if request["request"]["object"]["metadata"]["labels"].get("allow"):
