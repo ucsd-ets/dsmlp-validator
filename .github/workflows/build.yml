@@ -1,0 +1,45 @@
+name: Build
+on:
+  push:
+
+jobs:
+  test:
+    name: Run tests
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Checkout source
+        uses: actions/checkout@v3
+      # -
+      #   name: Start minikube
+      #   id: minikube
+      #   run: |
+      #     curl -L https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64 -o /tmp/minikube-linux-amd64
+      #     sudo install /tmp/minikube-linux-amd64 /usr/local/bin/minikube
+      #     minikube start --kubernetes-version=v1.20.15 --embed-certs --wait all --cni auto
+      -
+        name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+      -
+        name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install tox tox-gh-actions
+      # -
+      #   name: Create .env
+      #   uses: 1arp/create-a-file-action@0.2
+      #   with:
+      #     path: 'tests'
+      #     file: '.env'
+      #     content: |
+      #       AWSED_API_BASE_URL=
+      #       AWSED_API_KEY=
+      #       AWSED_API_ACTIVE_USERS_RESOURCE_PATH=
+      -
+        name: Run unit tests
+        run: tox
+      -
+        name: Run integration tests
+        run: ./run_integration_tests.sh
