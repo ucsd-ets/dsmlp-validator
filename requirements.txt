@@ -1,0 +1,5 @@
+dacite
+kubernetes==24.2.0
+tox
+flask==2.3.2
+jsonify
