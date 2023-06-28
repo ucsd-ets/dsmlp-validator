@@ -1,0 +1,8 @@
+/venv
+/.venv
+/.idea
+__pycache__
+.devcontainer
+/src/group_sync.egg-info
+*.egg-info
+.tox
