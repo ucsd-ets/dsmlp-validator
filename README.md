@@ -4,15 +4,31 @@ Validates pods for uid and gid.
 
 # Dev Environment
 
-## Ubuntu/WSL 2
+**Run Server**
 
 ```
-sudo apt install python3.8-venv
-python3 -m venv .venv
+python -m dsmlp.admission_controller
+```
+
+**Source layout**
+
+```
+|- src
+|  |- dsmlp
+|     |- app
+      |- ext
+      |- plugin
+|- tests
+```
+
+## Ubuntu 20 Focal/WSL 2
+
+```
+sudo apt install python3.9 python3.9-venv
+python3.9 -m venv .venv
 source .venv/bin/activate
 pip install pip-tools
 pip-sync requirements.txt
-#pip install -r requirements.txt
 pip install .[test]
 pip install --editable .
 ```
@@ -21,4 +37,8 @@ pip install --editable .
 
 ```
 tox
+
+#or
+
+pytest
 ```
