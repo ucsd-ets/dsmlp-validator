@@ -1,4 +1,5 @@
 import os
+import requests_mock
 from hamcrest import assert_that, equal_to
 from dsmlp.ext.awsed import DefaultAwsedClient
 from dsmlp.plugin.awsed import ListTeamsResponse, TeamJson, UserResponse

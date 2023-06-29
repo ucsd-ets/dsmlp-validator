@@ -4,3 +4,4 @@ flask==2.3.2
 jsonify
 waitress
 PyHamcrest
+requests_mock
