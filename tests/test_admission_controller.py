@@ -5,7 +5,6 @@ import shutil
 import tempfile
 import dsmlp
 from dsmlp.app import factory
-from dsmlp.ext.course import EnvVarConfigProvider
 # from dsmlp.plugin.awsed import CourseJson
 from tests.fakes import FakeAwsedClient
 

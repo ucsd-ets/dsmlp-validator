@@ -1,4 +1,4 @@
-import string
+import json
 from dsmlp.plugin.awsed import AwsedClient
 from dsmlp.plugin.console import Console
 from dsmlp.plugin.course import ConfigProvider
@@ -15,29 +15,47 @@ class Validator:
         self.logger = logger
 
     def validate_request(self, request):
-        username = request['request']['object']['metadata']['namespace']
-        self.logger.info(f"Validating request namespace={username}")
+        self.logger.debug("request=" + json.dumps(request, indent=2))
+        namespace_name = request['request']['object']['metadata']['namespace']
+        username = namespace_name
+        self.logger.info(f"Validating request namespace={namespace_name}")
 
-        namespace = self.kube.get_namespace(username)
+        namespace = self.kube.get_namespace(namespace_name)
         labels = namespace.labels
         if not 'k8s-sync' in labels:
-            self.logger.info(f"Allowed namespace={username}")
+            self.logger.info(f"Allowed namespace={namespace_name}")
             return self.admission_response(True, "Allowed")
 
         user = self.awsed.describe_user(username)
-        # username = request['request']['userInfo']['username']
-        if username.startswith('system:'):
-            return self.admission_response(True, "Allowed")
-        namespace = self.kube.get_namespace('user1')
+        user_uid = user.uid
+
+        namespace = self.kube.get_namespace(username)
         spec = request['request']['object']['spec']
-        uid = spec['securityContext']['runAsUser']
-        if user.uid != uid:
+        try:
+            uid = spec['securityContext']['runAsUser']
+        except KeyError:
+            uid = 0
+
+        if user_uid != uid:
             self.logger.info(
-                f"Denied request username={username} namespace={username} uid={user.uid} spec.securityContext.runAsUser={uid}")
+                f"Denied request username={username} namespace={namespace_name} uid={user_uid} spec.securityContext.runAsUser={uid}")
             return self.admission_response(False, f"{username} is not allowed to use uid {uid}")
-        # if request["request"]["object"]["metadata"]["labels"].get("allow"):
-        #     return self.admission_response(True, "Allow label exists")
+
+        container_uids = [self.get_run_as_user(container) for container in spec['containers']]
+        print(container_uids)
+        for uid in container_uids:
+            if user_uid != uid:
+                self.logger.info(
+                    "Denied request username=user2 namespace=user2 uid=2 spec.containers[0].securityContext.runAsUser=3")
+                return self.admission_response(False, f"{username} is not allowed to use uid {uid}")
+
         return self.admission_response(True, "Allowed")
 
     def admission_response(self, allowed, message):
         return {"response": {"allowed": allowed, "status": {"message": message}}}
+
+    def get_run_as_user(self, container):
+        try:
+            return container['securityContext']['runAsUser']
+        except KeyError:
+            return 0
