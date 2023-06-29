@@ -48,7 +48,7 @@ jobs:
         run: tox
       -
         name: Run integration tests
-        run: ./run_integration_tests.sh
+        run: pytest
 
       - name: Generate tags and labels
         id: meta
