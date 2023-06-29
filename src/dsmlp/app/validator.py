@@ -16,7 +16,7 @@ class Validator:
 
     def validate_request(self, request):
         self.logger.debug("request=" + json.dumps(request, indent=2))
-        namespace_name = request['request']['object']['metadata']['namespace']
+        namespace_name = request['request']['namespace']
         username = namespace_name
         self.logger.info(f"Validating request namespace={namespace_name}")
 

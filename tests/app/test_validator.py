@@ -25,9 +25,8 @@ class TestDirCreate:
         response = self.when_validate(
             {
                 "request": {
+                    "namespace": "user1",
                     "object": {
-                        "kind": "Pod",
-                        "metadata": {"namespace": "user1"},
                         "spec": {
                             "securityContext": {
                                 "runAsUser": 1
@@ -48,9 +47,8 @@ class TestDirCreate:
         response = self.when_validate(
             {
                 "request": {
+                    "namespace": "user1",
                     "object": {
-                        "kind": "Pod",
-                        "metadata": {"namespace": "user1"},
                         "spec": {
                             "securityContext": {
                                 "runAsUser": 1
@@ -77,9 +75,8 @@ class TestDirCreate:
         response = self.when_validate(
             {
                 "request": {
+                    "namespace": "user2",
                     "object": {
-                        "kind": "Pod",
-                        "metadata": {"namespace": "user2"},
                         "spec": {"securityContext": {"runAsUser": 3}},
                     }
                 }
@@ -97,9 +94,9 @@ class TestDirCreate:
         response = self.when_validate(
             {
                 "request": {
+                    "namespace": "user2",
                     "object": {
                         "kind": "Pod",
-                        "metadata": {"namespace": "user2"},
                         "spec": {
                             "securityContext": {"runAsUser": 2},
                             "containers": [
@@ -123,11 +120,7 @@ class TestDirCreate:
         response = self.when_validate(
             {
                 "request": {
-                    "object": {
-                        "kind": "Pod",
-                        "metadata": {"namespace": "kube-system"},
-                        "spec": {"securityContext": {"runAsUser": 2}},
-                    }
+                    "namespace": "kube-system"
                 }
             })
 
