@@ -1,10 +1,16 @@
 name: Build
 on:
+  schedule:
+    - cron: '0 2 * * *'
   push:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   test:
-    name: Run tests
+    name: Build and push image
     runs-on: ubuntu-latest
     steps:
       -
@@ -21,7 +27,7 @@ jobs:
         name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: 3.8
+          python-version: 3.9.5
       -
         name: Install dependencies
         run: |
@@ -43,3 +49,17 @@ jobs:
       -
         name: Run integration tests
         run: ./run_integration_tests.sh
+
+      - name: Generate tags and labels
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+
+      - name: Build and push image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
