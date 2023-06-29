@@ -1,5 +1,6 @@
 .venv
 .tox
-*.egg-info
 .vscode
 .git
+.pytest_cache
+build
