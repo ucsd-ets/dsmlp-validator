@@ -1,4 +1,4 @@
-FROM python:3.8.13
+FROM python:3.9.5
 
 RUN apt-get update && \
     apt-get install build-essential -y
@@ -9,8 +9,9 @@ WORKDIR /app
 
 RUN --mount=type=cache,target=/root/.cache \
     pip3 install -r requirements.txt && \
-    pip3 install -e .
+    pip3 install .
 
-CMD python -m group_sync && \
-    python -m create_team_dirs && \
-    python -m create_workspaces
+EXPOSE 8080/tcp
+
+#CMD flask --app dsmlp.admission_controller run --host=0.0.0.0
+CMD waitress-serve --call 'dsmlp.admission_controller:create_app'
