@@ -5,3 +5,4 @@ jsonify
 waitress
 PyHamcrest
 requests_mock
+dataclasses-json

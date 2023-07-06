@@ -77,7 +77,10 @@ class TestDirCreate:
                 "request": {
                     "namespace": "user2",
                     "object": {
-                        "spec": {"securityContext": {"runAsUser": 3}},
+                        "spec": {
+                            "containers": [],
+                            "securityContext": {"runAsUser": 3}},
+
                     }
                 }
             })
@@ -120,7 +123,18 @@ class TestDirCreate:
         response = self.when_validate(
             {
                 "request": {
-                    "namespace": "kube-system"
+                    "namespace": "kube-system",
+                    "object": {
+                        # "kind": "Pod",
+                        "spec": {
+                            # "securityContext": {"runAsUser": 2},
+                            "containers": [
+                                {
+                                    # "securityContext": {"runAsUser": 3}
+                                }
+                            ]
+                        }
+                    }
                 }
             })
 

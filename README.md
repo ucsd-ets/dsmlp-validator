@@ -33,6 +33,11 @@ pip install .[test]
 pip install --editable .
 ```
 
+```
+DOCKER_BUILDKIT=1 docker build -t dsmlp-validator .
+docker run --rm -it -p 9997:8080 dsmlp-validator:latest
+curl -X POST  localhost:9997/validate -H 'Content-Type: application/json' -d @tests/admission-review.json
+```
 ## Tests
 
 ```

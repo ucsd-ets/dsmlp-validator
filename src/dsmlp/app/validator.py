@@ -1,4 +1,8 @@
+from dataclasses import dataclass
 import json
+from typing import List, Optional
+
+from dataclasses_json import dataclass_json
 from dsmlp.plugin.awsed import AwsedClient
 from dsmlp.plugin.console import Console
 from dsmlp.plugin.course import ConfigProvider
@@ -6,6 +10,55 @@ from dsmlp.plugin.kube import KubeClient, NotFound
 import jsonify
 
 from dsmlp.plugin.logger import Logger
+
+
+@dataclass_json
+@dataclass
+class SecurityContext:
+    runAsUser: Optional[int] = None
+
+
+@dataclass_json
+@dataclass
+class Container:
+    securityContext: Optional[SecurityContext] = None
+
+
+@dataclass_json
+@dataclass
+class PodSecurityContext:
+    runAsUser: Optional[int] = None
+
+
+@dataclass_json
+@dataclass
+class Spec:
+    containers: List[Container]
+    securityContext: Optional[PodSecurityContext] = None
+
+
+@dataclass_json
+@dataclass
+class Object:
+    spec: Spec
+
+
+@dataclass_json
+@dataclass
+class Request:
+    namespace: str
+    object: Object
+
+
+@dataclass_json
+@dataclass
+class AdmissionReview:
+    request: Request
+
+
+class UidValidator:
+    def evaluate(self, review: AdmissionReview):
+        pass
 
 
 class Validator:
@@ -16,7 +69,8 @@ class Validator:
 
     def validate_request(self, request):
         self.logger.debug("request=" + json.dumps(request, indent=2))
-        namespace_name = request['request']['namespace']
+        review: AdmissionReview = AdmissionReview.from_dict(request)
+        namespace_name = review.request.namespace
         username = namespace_name
         self.logger.info(f"Validating request namespace={namespace_name}")
 
@@ -30,18 +84,16 @@ class Validator:
         user_uid = user.uid
 
         namespace = self.kube.get_namespace(username)
-        spec = request['request']['object']['spec']
-        try:
-            uid = spec['securityContext']['runAsUser']
-        except KeyError:
-            uid = 0
+        spec = review.request.object.spec
+        uid = spec.securityContext.runAsUser
 
         if user_uid != uid:
             self.logger.info(
                 f"Denied request username={username} namespace={namespace_name} uid={user_uid} spec.securityContext.runAsUser={uid}")
             return self.admission_response(False, f"{username} is not allowed to use uid {uid}")
 
-        container_uids = [self.get_run_as_user(container) for container in spec['containers']]
+        container_uids = [container.securityContext.runAsUser for container in spec.containers
+                          if container.securityContext.runAsUser is not None]
         print(container_uids)
         for uid in container_uids:
             if user_uid != uid:
@@ -53,9 +105,3 @@ class Validator:
 
     def admission_response(self, allowed, message):
         return {"response": {"allowed": allowed, "status": {"message": message}}}
-
-    def get_run_as_user(self, container):
-        try:
-            return container['securityContext']['runAsUser']
-        except KeyError:
-            return 0
