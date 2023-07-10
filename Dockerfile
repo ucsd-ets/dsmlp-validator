@@ -14,4 +14,4 @@ RUN --mount=type=cache,target=/root/.cache \
 EXPOSE 8080/tcp
 
 #CMD flask --app dsmlp.admission_controller run --host=0.0.0.0
-CMD waitress-serve --call 'dsmlp.admission_controller:create_app' --host=0.0.0.0
+CMD waitress-serve --listen=*:8080 --call 'dsmlp.admission_controller:create_app'
