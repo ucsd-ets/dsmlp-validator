@@ -47,3 +47,7 @@ tox
 
 pytest
 ```
+
+# Cert
+
+openssl req -subj '/CN=dsmlp-validater-dsmlp-validator.default.svc' -new -newkey rsa:2048 -sha256 -days 365 -nodes -x509 -keyout server.key -out server.crt

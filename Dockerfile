@@ -15,4 +15,4 @@ EXPOSE 8080/tcp
 
 #CMD flask --app dsmlp.admission_controller run --host=0.0.0.0
 # CMD waitress-serve --listen=*:8080 --call 'dsmlp.admission_controller:create_app'
-CMD gunicorn -w 4 -b 0.0.0.0 --certfile=/app/pki/server.crt --keyfile=/app/pki/server.key 'dsmlp.admission_controller:create_app()'
+CMD gunicorn -w 4 -b 0.0.0.0 --certfile=/app/pki/tls.crt --keyfile=/app/pki/tls.key 'dsmlp.admission_controller:create_app()'
