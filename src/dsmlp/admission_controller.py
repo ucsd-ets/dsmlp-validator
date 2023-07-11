@@ -22,6 +22,10 @@ def create_app(test_config=None):
     def validate_request():
         return validator.validate_request(request.get_json())
 
+    @app.route('/healthz', methods=['GET'])
+    def health():
+        return 'OK'
+
     app.config.from_mapping(
         SECRET_KEY=os.getenv('SECRET_KEY')
     )
