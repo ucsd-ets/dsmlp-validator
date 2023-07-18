@@ -5,7 +5,7 @@ from typing import List, TypedDict, Dict
 
 from dacite import from_dict
 
-from dsmlp.plugin.awsed import AwsedClient,  ListTeamsResponse, UserResponse
+from dsmlp.plugin.awsed import AwsedClient,  ListTeamsResponse, UnsuccessfulRequest, UserResponse
 from dsmlp.plugin.kube import KubeClient, Namespace, NotFound
 from dsmlp.plugin.logger import Logger
 
@@ -33,7 +33,10 @@ class FakeKubeClient(KubeClient):
         self.namespaces: TypedDict[str, Namespace] = {}
 
     def get_namespace(self, name: str) -> Namespace:
-        return self.namespaces[name]
+        try:
+            return self.namespaces[name]
+        except KeyError:
+            raise UnsuccessfulRequest()
 
     def add_namespace(self, name: str, namespace: Namespace):
         self.namespaces[name] = namespace

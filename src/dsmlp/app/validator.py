@@ -3,7 +3,7 @@ import json
 from typing import List, Optional
 
 from dataclasses_json import dataclass_json
-from dsmlp.plugin.awsed import AwsedClient
+from dsmlp.plugin.awsed import AwsedClient, UnsuccessfulRequest
 from dsmlp.plugin.console import Console
 from dsmlp.plugin.course import ConfigProvider
 from dsmlp.plugin.kube import KubeClient, NotFound
@@ -74,7 +74,11 @@ class Validator:
         username = namespace_name
         self.logger.info(f"Validating request namespace={namespace_name}")
 
-        namespace = self.kube.get_namespace(namespace_name)
+        try:
+            namespace = self.kube.get_namespace(namespace_name)
+        except UnsuccessfulRequest:
+            return self.admission_response(False, f"Denied request username={username} namespace={namespace_name}")
+
         labels = namespace.labels
         if not 'k8s-sync' in labels:
             self.logger.info(f"Allowed namespace={namespace_name}")

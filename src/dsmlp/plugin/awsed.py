@@ -27,3 +27,7 @@ class AwsedClient(metaclass=ABCMeta):
     @abstractmethod
     def describe_user(self, username: str) -> UserResponse:
         pass
+
+
+class UnsuccessfulRequest(Exception):
+    pass

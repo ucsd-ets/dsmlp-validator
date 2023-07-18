@@ -93,46 +93,28 @@ class TestDirCreate:
         assert_that(self.logger.messages, has_item(
             "INFO Denied request username=user2 namespace=user2 uid=2 spec.securityContext.runAsUser=3"))
 
-    # def test_deny_security_context2(self):
-    #     """
-    #     """
-    #     self.awsed_client.add_user('user2', UserResponse(uid=2))
-    #     self.kube.add_namespace('user2', Namespace(name='user2', labels={'k8s-sync': 'set'}))
+    def test_deny_unknown_user(self):
+        # self.awsed_client.add_user('user2', UserResponse(uid=2))
+        # self.kube.add_namespace('user2', Namespace(name='user2', labels={'k8s-sync': 'set'}))
 
-    #     response = self.when_validate(
-    #         {
-    #             "request": {
-    #                 "name": "static-web",
-    #                 "namespace": "user2"
-    #             },
-    #             "object": {
-    #                 "metadata": {
-    #                     "name": "static-web",
-    #                     "namespace": "user2",
-    #                     "uid": "2cfea5a0-ba48-46ba-be04-c4629d705a5a",
-    #                     "creationTimestamp": "2023-07-18T19:09:19Z",
-    #                     "labels": {
-    #                         "role": "myrole"
-    #                     }
-    #                 },
-    #                 "spec": {
-    #                     "containers": [{
-    #                         "name": "web",
-    #                         "image": "ubuntu"
-    #                     }
-    #                     ],
-    #                     "securityContext": {
-    #                         "runAsUser": 2
-    #                     }
-    #                 }
-    #             }
-    #         }
-    #     )
+        response = self.when_validate(
+            {
+                "request": {
+                    "namespace": "user2",
+                },
+                "object": {
+                    "spec": {
+                        "containers": [],
+                        "securityContext": {"runAsUser": 3}},
+
+                }
+            }
+        )
 
         assert_that(response, equal_to({"response": {"allowed": False, "status": {
-                    "message": "user2 is not allowed to use uid 3"}}}))
-        assert_that(self.logger.messages, has_item(
-            "INFO Denied request username=user2 namespace=user2 uid=2 spec.securityContext.runAsUser=3"))
+                    "message": "Denied request username=user2 namespace=user2"}}}))
+        # assert_that(self.logger.messages, has_item(
+        #     "INFO Denied request username=user2 namespace=user2"))
 
     def test_deny_pod_security_context(self):
         self.awsed_client.add_user('user2', UserResponse(uid=2))

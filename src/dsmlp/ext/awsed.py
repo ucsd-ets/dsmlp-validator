@@ -3,7 +3,7 @@ import os
 import requests
 from dacite import from_dict
 
-from dsmlp.plugin.awsed import AwsedClient, ListTeamsResponse, UserResponse
+from dsmlp.plugin.awsed import AwsedClient, ListTeamsResponse, UnsuccessfulRequest, UserResponse
 
 
 class DefaultAwsedClient(AwsedClient):
@@ -24,6 +24,8 @@ class DefaultAwsedClient(AwsedClient):
 
     def dataclass_request(self, data_class, url):
         result = requests.get(self.endpoint + url, headers=self.auth())
+        if result.status_code != 200:
+            raise UnsuccessfulRequest()
 
         return from_dict(data_class=data_class, data=result.json())
 
