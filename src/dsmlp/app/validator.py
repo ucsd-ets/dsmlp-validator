@@ -47,13 +47,13 @@ class Object:
 @dataclass
 class Request:
     namespace: str
+    object: Object
 
 
 @dataclass_json
 @dataclass
 class AdmissionReview:
     request: Request
-    object: Object
 
 
 class UidValidator:
@@ -88,7 +88,7 @@ class Validator:
         user_uid = user.uid
 
         namespace = self.kube.get_namespace(username)
-        spec = review.object.spec
+        spec = review.request.object.spec
         uid = spec.securityContext.runAsUser
 
         if user_uid != uid:

@@ -26,14 +26,14 @@ class TestDirCreate:
             {
                 "request": {
                     "namespace": "user1",
-                },
-                "object": {
-                    "spec": {
-                        "securityContext": {
-                            "runAsUser": 1
+                    "object": {
+                        "spec": {
+                            "securityContext": {
+                                "runAsUser": 1
+                            },
+                            "containers": []
                         },
-                        "containers": []
-                    },
+                    }
                 }
             }
         )
@@ -49,19 +49,19 @@ class TestDirCreate:
             {
                 "request": {
                     "namespace": "user1",
-                },
-                "object": {
-                    "spec": {
-                        "securityContext": {
-                            "runAsUser": 1
-                        },
-                        "containers": [
-                            {
-                                "securityContext": {
-                                    "runAsUser": 1
+                    "object": {
+                        "spec": {
+                            "securityContext": {
+                                "runAsUser": 1
+                            },
+                            "containers": [
+                                {
+                                    "securityContext": {
+                                        "runAsUser": 1
+                                    }
                                 }
-                            }
-                        ]
+                            ]
+                        }
                     }
                 }
             }
@@ -78,14 +78,13 @@ class TestDirCreate:
             {
                 "request": {
                     "namespace": "user2",
-                },
-                "object": {
-                    "spec": {
-                        "containers": [],
-                        "securityContext": {"runAsUser": 3}},
+                    "object": {
+                        "spec": {
+                            "containers": [],
+                            "securityContext": {"runAsUser": 3}},
 
-                }
-            }
+                    }
+                }}
         )
 
         assert_that(response, equal_to({"response": {"allowed": False, "status": {
@@ -101,14 +100,13 @@ class TestDirCreate:
             {
                 "request": {
                     "namespace": "user2",
-                },
-                "object": {
-                    "spec": {
-                        "containers": [],
-                        "securityContext": {"runAsUser": 3}},
+                    "object": {
+                        "spec": {
+                            "containers": [],
+                            "securityContext": {"runAsUser": 3}},
 
-                }
-            }
+                    }
+                }}
         )
 
         assert_that(response, equal_to({"response": {"allowed": False, "status": {
@@ -124,19 +122,18 @@ class TestDirCreate:
             {
                 "request": {
                     "namespace": "user2",
-                },
-                "object": {
-                    "kind": "Pod",
-                    "spec": {
+                    "object": {
+                        "kind": "Pod",
+                        "spec": {
                             "securityContext": {"runAsUser": 2},
                             "containers": [
                                 {
                                     "securityContext": {"runAsUser": 3}
                                 }
                             ]
+                        }
                     }
-                }
-            }
+                }}
         )
 
         assert_that(response, equal_to({"response": {"allowed": False, "status": {
@@ -151,16 +148,16 @@ class TestDirCreate:
             {
                 "request": {
                     "namespace": "kube-system",
-                },
-                "object": {
-                    # "kind": "Pod",
-                    "spec": {
-                        # "securityContext": {"runAsUser": 2},
-                        "containers": [
-                            {
-                                # "securityContext": {"runAsUser": 3}
-                            }
-                        ]
+                    "object": {
+                        # "kind": "Pod",
+                        "spec": {
+                            # "securityContext": {"runAsUser": 2},
+                            "containers": [
+                                {
+                                    # "securityContext": {"runAsUser": 3}
+                                }
+                            ]
+                        }
                     }
                 }
             }
