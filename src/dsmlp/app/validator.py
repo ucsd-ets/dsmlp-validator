@@ -47,13 +47,13 @@ class Object:
 @dataclass
 class Request:
     namespace: str
-    object: Object
 
 
 @dataclass_json
 @dataclass
 class AdmissionReview:
     request: Request
+    object: Object
 
 
 class UidValidator:
@@ -84,7 +84,7 @@ class Validator:
         user_uid = user.uid
 
         namespace = self.kube.get_namespace(username)
-        spec = review.request.object.spec
+        spec = review.object.spec
         uid = spec.securityContext.runAsUser
 
         if user_uid != uid:
@@ -93,7 +93,7 @@ class Validator:
             return self.admission_response(False, f"{username} is not allowed to use uid {uid}")
 
         container_uids = [container.securityContext.runAsUser for container in spec.containers
-                          if container.securityContext.runAsUser is not None]
+                          if container.securityContext is not None and container.securityContext.runAsUser is not None]
         print(container_uids)
         for uid in container_uids:
             if user_uid != uid:

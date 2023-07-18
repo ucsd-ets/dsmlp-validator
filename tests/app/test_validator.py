@@ -26,16 +26,17 @@ class TestDirCreate:
             {
                 "request": {
                     "namespace": "user1",
-                    "object": {
-                        "spec": {
-                            "securityContext": {
-                                "runAsUser": 1
-                            },
-                            "containers": []
+                },
+                "object": {
+                    "spec": {
+                        "securityContext": {
+                            "runAsUser": 1
                         },
-                    }
+                        "containers": []
+                    },
                 }
-            })
+            }
+        )
 
         assert_that(response, equal_to({"response": {"allowed": True, "status": {"message": "Allowed"}}}))
         assert_that(self.logger.messages, has_item("INFO Validating request namespace=user1"))
@@ -48,22 +49,23 @@ class TestDirCreate:
             {
                 "request": {
                     "namespace": "user1",
-                    "object": {
-                        "spec": {
-                            "securityContext": {
-                                "runAsUser": 1
-                            },
-                            "containers": [
-                                {
-                                    "securityContext": {
-                                        "runAsUser": 1
-                                    }
+                },
+                "object": {
+                    "spec": {
+                        "securityContext": {
+                            "runAsUser": 1
+                        },
+                        "containers": [
+                            {
+                                "securityContext": {
+                                    "runAsUser": 1
                                 }
-                            ]
-                        }
+                            }
+                        ]
                     }
                 }
-            })
+            }
+        )
 
         assert_that(response, equal_to({"response": {"allowed": True, "status": {"message": "Allowed"}}}))
         assert_that(self.logger.messages, has_item("INFO Validating request namespace=user1"))
@@ -76,14 +78,56 @@ class TestDirCreate:
             {
                 "request": {
                     "namespace": "user2",
-                    "object": {
-                        "spec": {
-                            "containers": [],
-                            "securityContext": {"runAsUser": 3}},
+                },
+                "object": {
+                    "spec": {
+                        "containers": [],
+                        "securityContext": {"runAsUser": 3}},
 
-                    }
                 }
-            })
+            }
+        )
+
+        assert_that(response, equal_to({"response": {"allowed": False, "status": {
+                    "message": "user2 is not allowed to use uid 3"}}}))
+        assert_that(self.logger.messages, has_item(
+            "INFO Denied request username=user2 namespace=user2 uid=2 spec.securityContext.runAsUser=3"))
+
+    # def test_deny_security_context2(self):
+    #     """
+    #     """
+    #     self.awsed_client.add_user('user2', UserResponse(uid=2))
+    #     self.kube.add_namespace('user2', Namespace(name='user2', labels={'k8s-sync': 'set'}))
+
+    #     response = self.when_validate(
+    #         {
+    #             "request": {
+    #                 "name": "static-web",
+    #                 "namespace": "user2"
+    #             },
+    #             "object": {
+    #                 "metadata": {
+    #                     "name": "static-web",
+    #                     "namespace": "user2",
+    #                     "uid": "2cfea5a0-ba48-46ba-be04-c4629d705a5a",
+    #                     "creationTimestamp": "2023-07-18T19:09:19Z",
+    #                     "labels": {
+    #                         "role": "myrole"
+    #                     }
+    #                 },
+    #                 "spec": {
+    #                     "containers": [{
+    #                         "name": "web",
+    #                         "image": "ubuntu"
+    #                     }
+    #                     ],
+    #                     "securityContext": {
+    #                         "runAsUser": 2
+    #                     }
+    #                 }
+    #             }
+    #         }
+    #     )
 
         assert_that(response, equal_to({"response": {"allowed": False, "status": {
                     "message": "user2 is not allowed to use uid 3"}}}))
@@ -98,19 +142,20 @@ class TestDirCreate:
             {
                 "request": {
                     "namespace": "user2",
-                    "object": {
-                        "kind": "Pod",
-                        "spec": {
+                },
+                "object": {
+                    "kind": "Pod",
+                    "spec": {
                             "securityContext": {"runAsUser": 2},
                             "containers": [
                                 {
                                     "securityContext": {"runAsUser": 3}
                                 }
                             ]
-                        }
                     }
                 }
-            })
+            }
+        )
 
         assert_that(response, equal_to({"response": {"allowed": False, "status": {
                     "message": "user2 is not allowed to use uid 3"}}}))
@@ -124,19 +169,20 @@ class TestDirCreate:
             {
                 "request": {
                     "namespace": "kube-system",
-                    "object": {
-                        # "kind": "Pod",
-                        "spec": {
-                            # "securityContext": {"runAsUser": 2},
-                            "containers": [
-                                {
-                                    # "securityContext": {"runAsUser": 3}
-                                }
-                            ]
-                        }
+                },
+                "object": {
+                    # "kind": "Pod",
+                    "spec": {
+                        # "securityContext": {"runAsUser": 2},
+                        "containers": [
+                            {
+                                # "securityContext": {"runAsUser": 3}
+                            }
+                        ]
                     }
                 }
-            })
+            }
+        )
 
         assert_that(response, equal_to({"response": {"allowed": True, "status": {
                     "message": "Allowed"}}}))
