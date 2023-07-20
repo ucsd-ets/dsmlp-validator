@@ -92,10 +92,7 @@ class Validator:
             username = namespace_name
             self.logger.info(f"Validating request namespace={namespace_name}")
 
-            try:
-                namespace = self.kube.get_namespace(namespace_name)
-            except UnsuccessfulRequest:
-                raise ValidationFailure(f"Pod validation failed")
+            namespace = self.kube.get_namespace(namespace_name)
 
             labels = namespace.labels
             if not 'k8s-sync' in labels:
@@ -122,7 +119,9 @@ class Validator:
         except ValidationFailure as ex:
             self.logger.info(f"Denied request username={username} namespace={namespace_name} reason={ex.message}")
             return self.admission_response(request_uid, False, f"{ex.message}")
-        except:
+        except Exception as ex:
+            self.logger.exception(ex)
+            self.logger.info(f"Denied request username={username} namespace={namespace_name} reason=Error")
             return self.admission_response(request_uid, False, f"Error")
 
     def check_pod_security_context(

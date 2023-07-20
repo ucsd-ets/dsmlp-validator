@@ -4,7 +4,6 @@ import logging
 
 class PythonLogger(Logger):
     def __init__(self, logger: logging.Logger) -> None:
-        # logging.basicConfig()
         self.logger = logging.getLogger('dsmlp')
 
     def debug(self, message: str):
@@ -12,3 +11,6 @@ class PythonLogger(Logger):
 
     def info(self, message: str):
         self.logger.info(message)
+
+    def exception(self, exception):
+        self.logger.exception(exception)

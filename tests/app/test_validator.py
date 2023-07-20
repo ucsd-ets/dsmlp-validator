@@ -135,7 +135,7 @@ class TestDirCreate:
                 "uid": "705ab4f5-6393-11e8-b7cc-42010a800002",
                 "allowed": False,
                 "status": {
-                    "message": "Pod validation failed"
+                    "message": "Error"
                 }}}))
 
     def test_deny_pod_security_context(self):

@@ -59,3 +59,6 @@ class FakeLogger(Logger):
 
     def info(self, message):
         self.messages.append(f"INFO {message}")
+
+    def exception(self, exception):
+        self.messages.append(f"EXCEPTION {exception}")

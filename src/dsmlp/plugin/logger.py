@@ -9,3 +9,7 @@ class Logger(metaclass=ABCMeta):
     @abstractmethod
     def info(self, message: str):
         pass
+
+    @abstractmethod
+    def exception(self, message: str):
+        pass
