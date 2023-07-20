@@ -128,18 +128,18 @@ class Validator:
             self, authorized_uid: int, allowed_teams: List[int],
             securityContext: PodSecurityContext):
         if securityContext.runAsUser is not None and authorized_uid != securityContext.runAsUser:
-            raise ValidationFailure(f"spec.securityContext: invalid uid {securityContext.runAsUser}")
+            raise ValidationFailure(f"spec.containers.securityContext: uid must be in range [{authorized_uid}]")
 
         if securityContext.runAsGroup is not None and securityContext.runAsGroup not in allowed_teams:
-            raise ValidationFailure(f"spec.securityContext: invalid gid {securityContext.runAsGroup}")
+            raise ValidationFailure(f"spec.containers.securityContext: gid must be in range {allowed_teams}")
 
         if securityContext.fsGroup is not None and securityContext.fsGroup not in allowed_teams:
-            raise ValidationFailure(f"spec.securityContext: invalid gid {securityContext.fsGroup}")
+            raise ValidationFailure(f"spec.containers.securityContext: gid must be in range {allowed_teams}")
 
         if securityContext.supplementalGroups is not None:
             for sgroup in securityContext.supplementalGroups:
                 if not sgroup in allowed_teams:
-                    raise ValidationFailure(f"spec.securityContext: invalid gid {sgroup}")
+                    raise ValidationFailure(f"spec.containers.securityContext: gid must be in range {allowed_teams}")
 
     def check_security_contexts(self, authorized_uid: int,  allowed_teams: List[int], containers: List[Container]):
         for container in containers:
@@ -148,10 +148,12 @@ class Validator:
                 return
 
             if securityContext.runAsUser is not None and authorized_uid != securityContext.runAsUser:
-                raise ValidationFailure(f"spec.containers.securityContext: invalid uid {securityContext.runAsUser}")
+                raise ValidationFailure(
+                    f"spec.containers.securityContext: uid must be in range [{authorized_uid}]")
 
             if securityContext.runAsGroup is not None and securityContext.runAsGroup not in allowed_teams:
-                raise ValidationFailure(f"spec.containers.securityContext: invalid gid {securityContext.runAsGroup}")
+                raise ValidationFailure(
+                    f"spec.containers.securityContext: gid must be in range {allowed_teams}")
 
     def admission_response(self, uid, allowed, message):
         return {
