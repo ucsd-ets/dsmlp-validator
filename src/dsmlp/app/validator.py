@@ -46,6 +46,7 @@ class Object:
 @dataclass_json
 @dataclass
 class Request:
+    uid: str
     namespace: str
     object: Object
 
@@ -67,9 +68,11 @@ class Validator:
         self.kube = kube
         self.logger = logger
 
-    def validate_request(self, request):
-        self.logger.debug("request=" + json.dumps(request, indent=2))
-        review: AdmissionReview = AdmissionReview.from_dict(request)
+    def validate_request(self, request_json):
+        self.logger.debug("request=" + json.dumps(request_json, indent=2))
+        review: AdmissionReview = AdmissionReview.from_dict(request_json)
+        request: Request = review.request
+        request_uid = request.uid
         namespace_name = review.request.namespace
         username = namespace_name
         self.logger.info(f"Validating request namespace={namespace_name}")
@@ -77,12 +80,13 @@ class Validator:
         try:
             namespace = self.kube.get_namespace(namespace_name)
         except UnsuccessfulRequest:
-            return self.admission_response(False, f"Denied request username={username} namespace={namespace_name}")
+            return self.admission_response(
+                request_uid, False, f"Denied request username={username} namespace={namespace_name}")
 
         labels = namespace.labels
         if not 'k8s-sync' in labels:
             self.logger.info(f"Allowed namespace={namespace_name}")
-            return self.admission_response(True, "Allowed")
+            return self.admission_response(request_uid, True, "Allowed")
 
         user = self.awsed.describe_user(username)
         user_uid = user.uid
@@ -94,7 +98,7 @@ class Validator:
         if user_uid != uid:
             self.logger.info(
                 f"Denied request username={username} namespace={namespace_name} uid={user_uid} spec.securityContext.runAsUser={uid}")
-            return self.admission_response(False, f"{username} is not allowed to use uid {uid}")
+            return self.admission_response(request_uid, False, f"{username} is not allowed to use uid {uid}")
 
         container_uids = [container.securityContext.runAsUser for container in spec.containers
                           if container.securityContext is not None and container.securityContext.runAsUser is not None]
@@ -103,9 +107,15 @@ class Validator:
             if user_uid != uid:
                 self.logger.info(
                     "Denied request username=user2 namespace=user2 uid=2 spec.containers[0].securityContext.runAsUser=3")
-                return self.admission_response(False, f"{username} is not allowed to use uid {uid}")
+                return self.admission_response(request_uid, False, f"{username} is not allowed to use uid {uid}")
 
-        return self.admission_response(True, "Allowed")
+        return self.admission_response(request_uid, True, "Allowed")
 
-    def admission_response(self, allowed, message):
-        return {"response": {"allowed": allowed, "status": {"message": message}}}
+    def admission_response(self, uid, allowed, message):
+        return {
+            "response": {
+                "uid": uid,
+                "allowed": allowed,
+                "status": {"message": message}
+            }
+        }
