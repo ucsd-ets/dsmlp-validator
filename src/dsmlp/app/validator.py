@@ -52,10 +52,17 @@ class Object:
 
 @dataclass_json
 @dataclass
+class UserInfo:
+    username: str
+
+
+@dataclass_json
+@dataclass
 class Request:
     uid: str
     namespace: str
     object: Object
+    userInfo: UserInfo
 
 
 @dataclass_json
@@ -64,14 +71,12 @@ class AdmissionReview:
     request: Request
 
 
-class UidValidator:
-    def evaluate(self, review: AdmissionReview):
-        pass
+# class UidValidator:
+#     def evaluate(self, review: AdmissionReview):
+#         pass
 
 
 class ValidationFailure(Exception):
-    # message: str
-
     def __init__(self, message: str) -> None:
         self.message = message
         super().__init__(self.message)
@@ -83,16 +88,16 @@ class Validator:
         self.kube = kube
         self.logger = logger
 
-    def validate_request(self, request_json):
-        try:
-            self.logger.debug("request=" + json.dumps(request_json, indent=2))
-            review: AdmissionReview = AdmissionReview.from_dict(request_json)
-            request: Request = review.request
-            request_uid = request.uid
-            namespace_name = review.request.namespace
-            username = namespace_name
+    def validate_request(self, admission_review_json):
+        self.logger.debug("request=" + json.dumps(admission_review_json, indent=2))
+        review: AdmissionReview = AdmissionReview.from_dict(admission_review_json)
+        request: Request = review.request
+        request_uid = request.uid
+        namespace_name = review.request.namespace
+        username = namespace_name
 
-            self.logger.info(f"Validating request namespace={namespace_name}")
+        try:
+            self.logger.info(f"Validating request username={request.userInfo.username} namespace={namespace_name}")
 
             namespace = self.kube.get_namespace(namespace_name)
 

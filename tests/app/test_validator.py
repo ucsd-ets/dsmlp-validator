@@ -17,8 +17,30 @@ class TestDirCreate:
         self.awsed_client.add_teams('user10', ListTeamsResponse(
             teams=[TeamJson(gid=1000)]
         ))
+        self.kube.add_namespace('kube-system', Namespace(name='kube-system', labels={}))
 
         self.logger = FakeLogger()
+
+    def test_log_request_details(self):
+        response = self.when_validate(
+            {
+                "request": {
+                    "uid": "705ab4f5-6393-11e8-b7cc-42010a800002",
+                    "namespace": "user10",
+                    "userInfo": {
+                        "username": "system:kube-system"
+                    },
+                    "object": {
+                        "spec": {
+                            "containers": [{}]
+                        },
+                    }
+                }
+            }
+        )
+
+        assert_that(self.logger.messages, has_item(
+            "INFO Validating request username=system:kube-system namespace=user10"))
 
     def test_pod_security_context(self):
         self.awsed_client.add_user('user1', UserResponse(uid=1))
@@ -28,6 +50,9 @@ class TestDirCreate:
             {
                 "request": {
                     "uid": "705ab4f5-6393-11e8-b7cc-42010a800002",
+                    "userInfo": {
+                        "username": "user1"
+                    },
                     "namespace": "user1",
                     "object": {
                         "spec": {
@@ -51,8 +76,6 @@ class TestDirCreate:
                     "message": "Allowed"
                 }}}))
 
-        assert_that(self.logger.messages, has_item("INFO Validating request namespace=user1"))
-
     def test_security_context(self):
         self.awsed_client.add_user('user1', UserResponse(uid=1))
         self.kube.add_namespace('user1', Namespace(name='user1', labels={'k8s-sync': 'set'}))
@@ -61,6 +84,9 @@ class TestDirCreate:
             {
                 "request": {
                     "uid": "705ab4f5-6393-11e8-b7cc-42010a800002",
+                    "userInfo": {
+                        "username": "user1"
+                    },
                     "namespace": "user1",
                     "object": {
                         "spec": {
@@ -87,7 +113,6 @@ class TestDirCreate:
                 "uid": "705ab4f5-6393-11e8-b7cc-42010a800002",
                 "allowed": True,
                 "status": {"message": "Allowed"}}}))
-        assert_that(self.logger.messages, has_item("INFO Validating request namespace=user1"))
 
     def test_deny_security_context(self):
         """
@@ -102,6 +127,9 @@ class TestDirCreate:
             {
                 "request": {
                     "uid": "705ab4f5-6393-11e8-b7cc-42010a800002",
+                    "userInfo": {
+                        "username": "user2"
+                    },
                     "namespace": "user2",
                     "object": {
                         "spec": {
@@ -129,6 +157,9 @@ class TestDirCreate:
             {
                 "request": {
                     "uid": "705ab4f5-6393-11e8-b7cc-42010a800002",
+                    "userInfo": {
+                        "username": "user2"
+                    },
                     "namespace": "user2",
                     "object": {
                         "spec": {
@@ -144,6 +175,9 @@ class TestDirCreate:
             {
                 "request": {
                     "uid": "705ab4f5-6393-11e8-b7cc-42010a800002",
+                    "userInfo": {
+                        "username": "user2"
+                    },
                     "namespace": "user2",
                     "object": {
                         "spec": {
@@ -169,6 +203,9 @@ class TestDirCreate:
             {
                 "request": {
                     "uid": "705ab4f5-6393-11e8-b7cc-42010a800002",
+                    "userInfo": {
+                        "username": "user2"
+                    },
                     "namespace": "user2",
                     "object": {
                         "kind": "Pod",
@@ -206,6 +243,9 @@ class TestDirCreate:
             {
                 "request": {
                     "uid": "705ab4f5-6393-11e8-b7cc-42010a800002",
+                    "userInfo": {
+                        "username": "user2"
+                    },
                     "namespace": "user2",
                     "object": {
                         "kind": "Pod",
@@ -241,6 +281,9 @@ class TestDirCreate:
             {
                 "request": {
                     "uid": "705ab4f5-6393-11e8-b7cc-42010a800002",
+                    "userInfo": {
+                        "username": "user10"
+                    },
                     "namespace": "user10",
                     "object": {
                         "kind": "Pod",
@@ -265,6 +308,9 @@ class TestDirCreate:
             {
                 "request": {
                     "uid": "705ab4f5-6393-11e8-b7cc-42010a800002",
+                    "userInfo": {
+                        "username": "user10"
+                    },
                     "namespace": "user10",
                     "object": {
                         "kind": "Pod",
@@ -291,6 +337,9 @@ class TestDirCreate:
             {
                 "request": {
                     "uid": "705ab4f5-6393-11e8-b7cc-42010a800002",
+                    "userInfo": {
+                        "username": "user10"
+                    },
                     "namespace": "user10",
                     "object": {
                         "kind": "Pod",
@@ -317,6 +366,9 @@ class TestDirCreate:
             {
                 "request": {
                     "uid": "705ab4f5-6393-11e8-b7cc-42010a800002",
+                    "userInfo": {
+                        "username": "user10"
+                    },
                     "namespace": "user10",
                     "object": {
                         "kind": "Pod",
@@ -343,6 +395,9 @@ class TestDirCreate:
             {
                 "request": {
                     "uid": "705ab4f5-6393-11e8-b7cc-42010a800002",
+                    "userInfo": {
+                        "username": "user10"
+                    },
                     "namespace": "user10",
                     "object": {
                         "kind": "Pod",
@@ -371,6 +426,9 @@ class TestDirCreate:
             {
                 "request": {
                     "uid": "705ab4f5-6393-11e8-b7cc-42010a800002",
+                    "userInfo": {
+                        "username": "user10"
+                    },
                     "namespace": "user10",
                     "object": {
                         "kind": "Pod",
@@ -403,16 +461,13 @@ class TestDirCreate:
             {
                 "request": {
                     "uid": "705ab4f5-6393-11e8-b7cc-42010a800002",
+                    "userInfo": {
+                        "username": "user10"
+                    },
                     "namespace": "kube-system",
                     "object": {
-                        # "kind": "Pod",
                         "spec": {
-                            # "securityContext": {"runAsUser": 2},
-                            "containers": [
-                                {
-                                    # "securityContext": {"runAsUser": 3}
-                                }
-                            ]
+                            "containers": [{}]
                         }
                     }
                 }
