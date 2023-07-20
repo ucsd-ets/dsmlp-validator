@@ -90,6 +90,11 @@ class TestDirCreate:
         assert_that(self.logger.messages, has_item("INFO Validating request namespace=user1"))
 
     def test_deny_security_context(self):
+        """
+        The user is launching a Pod,
+        but the PodSecurityContext.runAsUser doesn't belong to them.
+        Deny the request.
+        """
         self.awsed_client.add_user('user2', UserResponse(uid=2))
         self.kube.add_namespace('user2', Namespace(name='user2', labels={'k8s-sync': 'set'}))
 
@@ -100,9 +105,11 @@ class TestDirCreate:
                     "namespace": "user2",
                     "object": {
                         "spec": {
-                            "containers": [],
-                            "securityContext": {"runAsUser": 3}},
-                    }}})
+                            "securityContext": {"runAsUser": 3},
+                            "containers": []
+                        }
+                    }
+                }})
 
         assert_that(response, equal_to({
             "apiVersion": "admission.k8s.io/v1",
@@ -111,7 +118,7 @@ class TestDirCreate:
                 "uid": "705ab4f5-6393-11e8-b7cc-42010a800002",
                 "allowed": False,
                 "status": {
-                    "message": "spec.containers.securityContext: uid must be in range [2]"
+                    "message": "spec.securityContext: uid must be in range [2]"
                 }}}))
 
     def test_failures_are_logged(self):
@@ -168,6 +175,7 @@ class TestDirCreate:
                         "spec": {
                             "securityContext": {"runAsUser": 2},
                             "containers": [
+                                {},
                                 {
                                     "securityContext": {"runAsUser": 3}
                                 }
@@ -182,10 +190,46 @@ class TestDirCreate:
             "response": {
                 "uid": "705ab4f5-6393-11e8-b7cc-42010a800002",
                 "allowed": False, "status": {
-                    "message": "spec.containers.securityContext: uid must be in range [2]"
+                    "message": "spec.containers[1].securityContext: uid must be in range [2]"
                 }}}))
-        # assert_that(self.logger.messages, has_item(equal_to(
-        #     "INFO Denied request username=user2 namespace=user2 reason=spec.containers.securityContext: invalid uid 3")))
+
+    def test_deny_init_container(self):
+        """
+        The user is launching a Pod with an Init Container,
+        but the uid doesn't belong to them.
+        Deny the request.
+        """
+        self.awsed_client.add_user('user2', UserResponse(uid=2))
+        self.kube.add_namespace('user2', Namespace(name='user2', labels={'k8s-sync': 'set'}))
+
+        response = self.when_validate(
+            {
+                "request": {
+                    "uid": "705ab4f5-6393-11e8-b7cc-42010a800002",
+                    "namespace": "user2",
+                    "object": {
+                        "kind": "Pod",
+                        "spec": {
+                            "containers": [{}],
+                            "initContainers": [
+                                {},
+                                {
+                                    "securityContext": {"runAsUser": 99}
+                                }
+                            ]
+                        }
+                    }
+                }})
+
+        assert_that(response, equal_to({
+            "apiVersion": "admission.k8s.io/v1",
+            "kind": "AdmissionReview",
+            "response": {
+                "uid": "705ab4f5-6393-11e8-b7cc-42010a800002",
+                "allowed": False,
+                "status": {
+                    "message": "spec.initContainers[1].securityContext: uid must be in range [2]"
+                }}}))
 
     def test_deny_pod_security_context2(self):
         """
@@ -238,7 +282,7 @@ class TestDirCreate:
             "response": {
                 "uid": "705ab4f5-6393-11e8-b7cc-42010a800002",
                 "allowed": False, "status": {
-                    "message": "spec.containers.securityContext: gid must be in range [1000, 0, 100]"
+                    "message": "spec.securityContext: gid must be in range [1000, 0, 100]"
                 }}}))
 
     # check podSecurityContext.fsGroup
@@ -264,7 +308,7 @@ class TestDirCreate:
             "response": {
                 "uid": "705ab4f5-6393-11e8-b7cc-42010a800002",
                 "allowed": False, "status": {
-                    "message": "spec.containers.securityContext: gid must be in range [1000, 0, 100]"
+                    "message": "spec.securityContext: gid must be in range [1000, 0, 100]"
                 }}}))
 
     # check podSecurityContext.supplementalGroups
@@ -278,11 +322,7 @@ class TestDirCreate:
                         "kind": "Pod",
                         "spec": {
                             "securityContext": {"supplementalGroups": [2]},
-                            "containers": [
-                                {
-                                    # "securityContext": {"runAsUser": 3}
-                                }
-                            ]
+                            "containers": [{}]
                         }
                     }
                 }}
@@ -294,14 +334,11 @@ class TestDirCreate:
             "response": {
                 "uid": "705ab4f5-6393-11e8-b7cc-42010a800002",
                 "allowed": False, "status": {
-                    "message": "spec.containers.securityContext: gid must be in range [1000, 0, 100]"
+                    "message": "spec.securityContext: gid must be in range [1000, 0, 100]"
                 }}}))
 
     # check container.securityContext.runAsGroup
     def test_deny_container_run_as_group(self):
-        # self.awsed_client.add_user('user2', UserResponse(uid=2))
-        # self.kube.add_namespace('user2', Namespace(name='user2', labels={'k8s-sync': 'set'}))
-
         response = self.when_validate(
             {
                 "request": {
@@ -326,13 +363,10 @@ class TestDirCreate:
             "response": {
                 "uid": "705ab4f5-6393-11e8-b7cc-42010a800002",
                 "allowed": False, "status": {
-                    "message": "spec.containers.securityContext: gid must be in range [1000, 0, 100]"
+                    "message": "spec.containers[0].securityContext: gid must be in range [1000, 0, 100]"
                 }}}))
 
     def test_allow_gid_0_and_100a(self):
-        # self.awsed_client.add_user('user2', UserResponse(uid=2))
-        # self.kube.add_namespace('user2', Namespace(name='user2', labels={'k8s-sync': 'set'}))
-
         response = self.when_validate(
             {
                 "request": {
