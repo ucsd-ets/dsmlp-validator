@@ -15,7 +15,9 @@ from dsmlp.plugin.logger import Logger
 @dataclass_json
 @dataclass
 class SecurityContext:
+    """Each Container has a SecurityContext"""
     runAsUser: Optional[int] = None
+    runAsGroup: Optional[int] = None
 
 
 @dataclass_json
@@ -27,7 +29,11 @@ class Container:
 @dataclass_json
 @dataclass
 class PodSecurityContext:
+    """Each Pod has a SecurityContext"""
     runAsUser: Optional[int] = None
+    runAsGroup: Optional[int] = None
+    fsGroup: Optional[int] = None
+    supplementalGroups: Optional[List[int]] = None
 
 
 @dataclass_json
@@ -99,19 +105,28 @@ class Validator:
         user = self.awsed.describe_user(username)
         user_uid = user.uid
 
+        team_response = self.awsed.list_user_teams(username)
+        allowed_teams = [team.gid for team in team_response.teams]
+        allowed_teams.append(0)
+        allowed_teams.append(100)
+
         namespace = self.kube.get_namespace(username)
         spec = review.request.object.spec
-        uid = spec.securityContext.runAsUser
+        if spec.securityContext is not None and spec.securityContext.runAsUser is not None:
+            uid = spec.securityContext.runAsUser
+        else:
+            uid = None
 
         try:
-            self.check_pod_security_context(user_uid, spec.securityContext)
+            if spec.securityContext is not None:
+                self.check_pod_security_context(user_uid, allowed_teams, spec.securityContext)
         except ValidationFailure as ex:
             self.logger.info(
                 f"Denied request username={username} namespace={namespace_name} uid={user_uid} spec.securityContext.runAsUser={uid}")
             return self.admission_response(request_uid, False, f"{ex.message}")
 
         try:
-            self.check_security_contexts(user_uid, spec.containers)
+            self.check_security_contexts(user_uid, allowed_teams, spec.containers)
         except ValidationFailure as ex:
             self.logger.info(
                 "Denied request username=user2 namespace=user2 uid=2 spec.containers[0].securityContext.runAsUser=3")
@@ -119,19 +134,32 @@ class Validator:
 
         return self.admission_response(request_uid, True, "Allowed")
 
-    def check_pod_security_context(self, authorized_uid: int, securityContext: PodSecurityContext):
-        if authorized_uid != securityContext.runAsUser:
-            raise ValidationFailure(f"invalid uid {securityContext.runAsUser}")
+    def check_pod_security_context(
+            self, authorized_uid: int, allowed_teams: List[int],
+            securityContext: PodSecurityContext):
+        if securityContext.runAsUser is not None and authorized_uid != securityContext.runAsUser:
+            raise ValidationFailure(f"spec.securityContext: invalid uid {securityContext.runAsUser}")
 
-    def check_security_contexts(self, authorized_uid: int, containers: List[Container]):
-        container_uids = [container.securityContext.runAsUser for container in containers
-                          if container.securityContext is not None and container.securityContext.runAsUser is not None]
+        if securityContext.runAsGroup is not None and securityContext.runAsGroup not in allowed_teams:
+            raise ValidationFailure(f"spec.securityContext: invalid gid {securityContext.runAsGroup}")
 
-        for container_uid in container_uids:
-            if authorized_uid != container_uid:
-                raise ValidationFailure(f"invalid uid {container_uid}")
+        if securityContext.fsGroup is not None and securityContext.fsGroup not in allowed_teams:
+            raise ValidationFailure(f"spec.securityContext: invalid gid {securityContext.fsGroup}")
 
-        return True
+        if securityContext.supplementalGroups is not None:
+            for sgroup in securityContext.supplementalGroups:
+                if not sgroup in allowed_teams:
+                    raise ValidationFailure(f"spec.securityContext: invalid gid {sgroup}")
+
+    def check_security_contexts(self, authorized_uid: int,  allowed_teams: List[int], containers: List[Container]):
+        for container in containers:
+            securityContext = container.securityContext
+
+            if securityContext.runAsUser is not None and authorized_uid != securityContext.runAsUser:
+                raise ValidationFailure(f"spec.containers.securityContext: invalid uid {securityContext.runAsUser}")
+
+            if securityContext.runAsGroup is not None and securityContext.runAsGroup not in allowed_teams:
+                raise ValidationFailure(f"spec.containers.securityContext: invalid gid {securityContext.runAsGroup}")
 
     def admission_response(self, uid, allowed, message):
         return {

@@ -12,8 +12,10 @@ class TestDirCreate:
         self.awsed_client = FakeAwsedClient()
         self.kube = FakeKubeClient()
 
-        self.awsed_client.add_teams('user1', ListTeamsResponse(
-            teams=[TeamJson(gid=1)]
+        self.awsed_client.add_user('user10', UserResponse(uid=10))
+        self.kube.add_namespace('user10', Namespace(name='user10', labels={'k8s-sync': 'set'}))
+        self.awsed_client.add_teams('user10', ListTeamsResponse(
+            teams=[TeamJson(gid=1000)]
         ))
 
         self.logger = FakeLogger()
@@ -111,7 +113,7 @@ class TestDirCreate:
                 "uid": "705ab4f5-6393-11e8-b7cc-42010a800002",
                 "allowed": False,
                 "status": {
-                    "message": "invalid uid 3"
+                    "message": "spec.securityContext: invalid uid 3"
                 }}}))
         assert_that(self.logger.messages, has_item(
             "INFO Denied request username=user2 namespace=user2 uid=2 spec.securityContext.runAsUser=3"))
@@ -175,10 +177,174 @@ class TestDirCreate:
             "response": {
                 "uid": "705ab4f5-6393-11e8-b7cc-42010a800002",
                 "allowed": False, "status": {
-                    "message": "invalid uid 3"
+                    "message": "spec.containers.securityContext: invalid uid 3"
                 }}}))
         assert_that(self.logger.messages, has_item(equal_to(
             "INFO Denied request username=user2 namespace=user2 uid=2 spec.containers[0].securityContext.runAsUser=3")))
+
+    # check podSecurityContext.runAsGroup
+    def test_deny_team_gid(self):
+        # self.awsed_client.add_user('user2', UserResponse(uid=2))
+        # self.kube.add_namespace('user2', Namespace(name='user2', labels={'k8s-sync': 'set'}))
+
+        response = self.when_validate(
+            {
+                "request": {
+                    "uid": "705ab4f5-6393-11e8-b7cc-42010a800002",
+                    "namespace": "user10",
+                    "object": {
+                        "kind": "Pod",
+                        "spec": {
+                            "securityContext": {"runAsGroup": 2},
+                            "containers": [
+                                {
+                                    # "securityContext": {"runAsUser": 3}
+                                }
+                            ]
+                        }
+                    }
+                }}
+        )
+
+        assert_that(response, equal_to({
+            "apiVersion": "admission.k8s.io/v1",
+            "kind": "AdmissionReview",
+            "response": {
+                "uid": "705ab4f5-6393-11e8-b7cc-42010a800002",
+                "allowed": False, "status": {
+                    "message": "spec.securityContext: invalid gid 2"
+                }}}))
+
+    # check podSecurityContext.fsGroup
+    def test_deny_pod_fsGroup(self):
+        # self.awsed_client.add_user('user2', UserResponse(uid=2))
+        # self.kube.add_namespace('user2', Namespace(name='user2', labels={'k8s-sync': 'set'}))
+
+        response = self.when_validate(
+            {
+                "request": {
+                    "uid": "705ab4f5-6393-11e8-b7cc-42010a800002",
+                    "namespace": "user10",
+                    "object": {
+                        "kind": "Pod",
+                        "spec": {
+                            "securityContext": {"fsGroup": 2},
+                            "containers": [
+                                {
+                                    # "securityContext": {"runAsUser": 3}
+                                }
+                            ]
+                        }
+                    }
+                }}
+        )
+
+        assert_that(response, equal_to({
+            "apiVersion": "admission.k8s.io/v1",
+            "kind": "AdmissionReview",
+            "response": {
+                "uid": "705ab4f5-6393-11e8-b7cc-42010a800002",
+                "allowed": False, "status": {
+                    "message": "spec.securityContext: invalid gid 2"
+                }}}))
+
+    # check podSecurityContext.supplementalGroups
+    def test_deny_pod_supplemental_groups(self):
+        # self.awsed_client.add_user('user2', UserResponse(uid=2))
+        # self.kube.add_namespace('user2', Namespace(name='user2', labels={'k8s-sync': 'set'}))
+
+        response = self.when_validate(
+            {
+                "request": {
+                    "uid": "705ab4f5-6393-11e8-b7cc-42010a800002",
+                    "namespace": "user10",
+                    "object": {
+                        "kind": "Pod",
+                        "spec": {
+                            "securityContext": {"supplementalGroups": [2]},
+                            "containers": [
+                                {
+                                    # "securityContext": {"runAsUser": 3}
+                                }
+                            ]
+                        }
+                    }
+                }}
+        )
+
+        assert_that(response, equal_to({
+            "apiVersion": "admission.k8s.io/v1",
+            "kind": "AdmissionReview",
+            "response": {
+                "uid": "705ab4f5-6393-11e8-b7cc-42010a800002",
+                "allowed": False, "status": {
+                    "message": "spec.securityContext: invalid gid 2"
+                }}}))
+
+    # check container.securityContext.runAsGroup
+    def test_deny_container_run_as_group(self):
+        # self.awsed_client.add_user('user2', UserResponse(uid=2))
+        # self.kube.add_namespace('user2', Namespace(name='user2', labels={'k8s-sync': 'set'}))
+
+        response = self.when_validate(
+            {
+                "request": {
+                    "uid": "705ab4f5-6393-11e8-b7cc-42010a800002",
+                    "namespace": "user10",
+                    "object": {
+                        "kind": "Pod",
+                        "spec": {
+                            "containers": [
+                                {
+                                    "securityContext": {"runAsGroup": 2}
+                                }
+                            ]
+                        }
+                    }
+                }}
+        )
+
+        assert_that(response, equal_to({
+            "apiVersion": "admission.k8s.io/v1",
+            "kind": "AdmissionReview",
+            "response": {
+                "uid": "705ab4f5-6393-11e8-b7cc-42010a800002",
+                "allowed": False, "status": {
+                    "message": "spec.containers.securityContext: invalid gid 2"
+                }}}))
+
+    def test_allow_gid_0_and_100a(self):
+        # self.awsed_client.add_user('user2', UserResponse(uid=2))
+        # self.kube.add_namespace('user2', Namespace(name='user2', labels={'k8s-sync': 'set'}))
+
+        response = self.when_validate(
+            {
+                "request": {
+                    "uid": "705ab4f5-6393-11e8-b7cc-42010a800002",
+                    "namespace": "user10",
+                    "object": {
+                        "kind": "Pod",
+                        "spec": {
+                            "securityContext": {"runAsGroup": 0},
+                            "containers": [
+                                {
+                                    "securityContext": {"runAsGroup": 100}
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        )
+
+        assert_that(response, equal_to({
+            "apiVersion": "admission.k8s.io/v1",
+            "kind": "AdmissionReview",
+            "response": {
+                "uid": "705ab4f5-6393-11e8-b7cc-42010a800002",
+                "allowed": True, "status": {
+                    "message": "Allowed"
+                }}}))
 
     def test_unlabelled_namespace_can_use_any_uid(self):
         self.kube.add_namespace('kube-system', Namespace(name='kube-system', labels={}))

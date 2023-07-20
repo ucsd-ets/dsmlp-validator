@@ -16,10 +16,18 @@ class FakeAwsedClient(AwsedClient):
         self.users: Dict[str, UserResponse] = {}
 
     def list_user_teams(self, username: str) -> ListTeamsResponse:
-        return self.teams[username]
+        try:
+            return self.teams[username]
+        except KeyError:
+            if username in self.users:
+                return ListTeamsResponse(teams=[])
+            raise UnsuccessfulRequest()
 
     def describe_user(self, username: str) -> UserResponse:
-        return self.users[username]
+        try:
+            return self.users[username]
+        except KeyError:
+            raise UnsuccessfulRequest()
 
     def add_user(self, username, user: UserResponse):
         self.users[username] = user
