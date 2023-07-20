@@ -62,6 +62,14 @@ class UidValidator:
         pass
 
 
+class ValidationFailure(Exception):
+    # message: str
+
+    def __init__(self, message: str) -> None:
+        self.message = message
+        super().__init__(self.message)
+
+
 class Validator:
     def __init__(self, awsed: AwsedClient, kube: KubeClient, logger: Logger) -> None:
         self.awsed = awsed
@@ -95,21 +103,35 @@ class Validator:
         spec = review.request.object.spec
         uid = spec.securityContext.runAsUser
 
-        if user_uid != uid:
+        try:
+            self.check_pod_security_context(user_uid, spec.securityContext)
+        except ValidationFailure as ex:
             self.logger.info(
                 f"Denied request username={username} namespace={namespace_name} uid={user_uid} spec.securityContext.runAsUser={uid}")
-            return self.admission_response(request_uid, False, f"{username} is not allowed to use uid {uid}")
+            return self.admission_response(request_uid, False, f"{ex.message}")
 
-        container_uids = [container.securityContext.runAsUser for container in spec.containers
-                          if container.securityContext is not None and container.securityContext.runAsUser is not None]
-        print(container_uids)
-        for uid in container_uids:
-            if user_uid != uid:
-                self.logger.info(
-                    "Denied request username=user2 namespace=user2 uid=2 spec.containers[0].securityContext.runAsUser=3")
-                return self.admission_response(request_uid, False, f"{username} is not allowed to use uid {uid}")
+        try:
+            self.check_security_contexts(user_uid, spec.containers)
+        except ValidationFailure as ex:
+            self.logger.info(
+                "Denied request username=user2 namespace=user2 uid=2 spec.containers[0].securityContext.runAsUser=3")
+            return self.admission_response(request_uid, False, f"{ex.message}")
 
         return self.admission_response(request_uid, True, "Allowed")
+
+    def check_pod_security_context(self, authorized_uid: int, securityContext: PodSecurityContext):
+        if authorized_uid != securityContext.runAsUser:
+            raise ValidationFailure(f"invalid uid {securityContext.runAsUser}")
+
+    def check_security_contexts(self, authorized_uid: int, containers: List[Container]):
+        container_uids = [container.securityContext.runAsUser for container in containers
+                          if container.securityContext is not None and container.securityContext.runAsUser is not None]
+
+        for container_uid in container_uids:
+            if authorized_uid != container_uid:
+                raise ValidationFailure(f"invalid uid {container_uid}")
+
+        return True
 
     def admission_response(self, uid, allowed, message):
         return {

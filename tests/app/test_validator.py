@@ -111,7 +111,7 @@ class TestDirCreate:
                 "uid": "705ab4f5-6393-11e8-b7cc-42010a800002",
                 "allowed": False,
                 "status": {
-                    "message": "user2 is not allowed to use uid 3"
+                    "message": "invalid uid 3"
                 }}}))
         assert_that(self.logger.messages, has_item(
             "INFO Denied request username=user2 namespace=user2 uid=2 spec.securityContext.runAsUser=3"))
@@ -175,7 +175,7 @@ class TestDirCreate:
             "response": {
                 "uid": "705ab4f5-6393-11e8-b7cc-42010a800002",
                 "allowed": False, "status": {
-                    "message": "user2 is not allowed to use uid 3"
+                    "message": "invalid uid 3"
                 }}}))
         assert_that(self.logger.messages, has_item(equal_to(
             "INFO Denied request username=user2 namespace=user2 uid=2 spec.containers[0].securityContext.runAsUser=3")))
