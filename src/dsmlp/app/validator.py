@@ -113,9 +113,13 @@ class Validator:
 
     def admission_response(self, uid, allowed, message):
         return {
+            "apiVersion": "admission.k8s.io/v1",
+            "kind": "AdmissionReview",
             "response": {
                 "uid": uid,
                 "allowed": allowed,
-                "status": {"message": message}
+                "status": {
+                    "message": message
+                }
             }
         }
