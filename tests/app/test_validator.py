@@ -102,9 +102,7 @@ class TestDirCreate:
                         "spec": {
                             "containers": [],
                             "securityContext": {"runAsUser": 3}},
-                    }
-                }}
-        )
+                    }}})
 
         assert_that(response, equal_to({
             "apiVersion": "admission.k8s.io/v1",
@@ -116,12 +114,9 @@ class TestDirCreate:
                     "message": "spec.securityContext: invalid uid 3"
                 }}}))
         assert_that(self.logger.messages, has_item(
-            "INFO Denied request username=user2 namespace=user2 uid=2 spec.securityContext.runAsUser=3"))
+            "INFO Denied request username=user2 namespace=user2 reason=spec.securityContext: invalid uid 3"))
 
     def test_deny_unknown_user(self):
-        # self.awsed_client.add_user('user2', UserResponse(uid=2))
-        # self.kube.add_namespace('user2', Namespace(name='user2', labels={'k8s-sync': 'set'}))
-
         response = self.when_validate(
             {
                 "request": {
@@ -131,10 +126,7 @@ class TestDirCreate:
                         "spec": {
                             "containers": [],
                             "securityContext": {"runAsUser": 3}},
-
-                    }
-                }}
-        )
+                    }}})
 
         assert_that(response, equal_to({
             "apiVersion": "admission.k8s.io/v1",
@@ -143,10 +135,8 @@ class TestDirCreate:
                 "uid": "705ab4f5-6393-11e8-b7cc-42010a800002",
                 "allowed": False,
                 "status": {
-                    "message": "Denied request username=user2 namespace=user2"
+                    "message": "Pod validation failed"
                 }}}))
-        # assert_that(self.logger.messages, has_item(
-        #     "INFO Denied request username=user2 namespace=user2"))
 
     def test_deny_pod_security_context(self):
         self.awsed_client.add_user('user2', UserResponse(uid=2))
@@ -180,7 +170,7 @@ class TestDirCreate:
                     "message": "spec.containers.securityContext: invalid uid 3"
                 }}}))
         assert_that(self.logger.messages, has_item(equal_to(
-            "INFO Denied request username=user2 namespace=user2 uid=2 spec.containers[0].securityContext.runAsUser=3")))
+            "INFO Denied request username=user2 namespace=user2 reason=spec.containers.securityContext: invalid uid 3")))
 
     # check podSecurityContext.runAsGroup
     def test_deny_team_gid(self):

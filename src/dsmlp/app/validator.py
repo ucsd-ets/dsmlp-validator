@@ -83,56 +83,47 @@ class Validator:
         self.logger = logger
 
     def validate_request(self, request_json):
-        self.logger.debug("request=" + json.dumps(request_json, indent=2))
-        review: AdmissionReview = AdmissionReview.from_dict(request_json)
-        request: Request = review.request
-        request_uid = request.uid
-        namespace_name = review.request.namespace
-        username = namespace_name
-        self.logger.info(f"Validating request namespace={namespace_name}")
-
         try:
-            namespace = self.kube.get_namespace(namespace_name)
-        except UnsuccessfulRequest:
-            return self.admission_response(
-                request_uid, False, f"Denied request username={username} namespace={namespace_name}")
+            self.logger.debug("request=" + json.dumps(request_json, indent=2))
+            review: AdmissionReview = AdmissionReview.from_dict(request_json)
+            request: Request = review.request
+            request_uid = request.uid
+            namespace_name = review.request.namespace
+            username = namespace_name
+            self.logger.info(f"Validating request namespace={namespace_name}")
 
-        labels = namespace.labels
-        if not 'k8s-sync' in labels:
-            self.logger.info(f"Allowed namespace={namespace_name}")
-            return self.admission_response(request_uid, True, "Allowed")
+            try:
+                namespace = self.kube.get_namespace(namespace_name)
+            except UnsuccessfulRequest:
+                raise ValidationFailure(f"Pod validation failed")
 
-        user = self.awsed.describe_user(username)
-        user_uid = user.uid
+            labels = namespace.labels
+            if not 'k8s-sync' in labels:
+                self.logger.info(f"Allowed namespace={namespace_name}")
+                return self.admission_response(request_uid, True, "Allowed")
 
-        team_response = self.awsed.list_user_teams(username)
-        allowed_teams = [team.gid for team in team_response.teams]
-        allowed_teams.append(0)
-        allowed_teams.append(100)
+            user = self.awsed.describe_user(username)
+            user_uid = user.uid
 
-        namespace = self.kube.get_namespace(username)
-        spec = review.request.object.spec
-        if spec.securityContext is not None and spec.securityContext.runAsUser is not None:
-            uid = spec.securityContext.runAsUser
-        else:
-            uid = None
+            team_response = self.awsed.list_user_teams(username)
+            allowed_teams = [team.gid for team in team_response.teams]
+            allowed_teams.append(0)
+            allowed_teams.append(100)
 
-        try:
+            namespace = self.kube.get_namespace(username)
+            spec = review.request.object.spec
+
             if spec.securityContext is not None:
                 self.check_pod_security_context(user_uid, allowed_teams, spec.securityContext)
-        except ValidationFailure as ex:
-            self.logger.info(
-                f"Denied request username={username} namespace={namespace_name} uid={user_uid} spec.securityContext.runAsUser={uid}")
-            return self.admission_response(request_uid, False, f"{ex.message}")
 
-        try:
             self.check_security_contexts(user_uid, allowed_teams, spec.containers)
-        except ValidationFailure as ex:
-            self.logger.info(
-                "Denied request username=user2 namespace=user2 uid=2 spec.containers[0].securityContext.runAsUser=3")
-            return self.admission_response(request_uid, False, f"{ex.message}")
 
-        return self.admission_response(request_uid, True, "Allowed")
+            return self.admission_response(request_uid, True, "Allowed")
+        except ValidationFailure as ex:
+            self.logger.info(f"Denied request username={username} namespace={namespace_name} reason={ex.message}")
+            return self.admission_response(request_uid, False, f"{ex.message}")
+        except:
+            return self.admission_response(request_uid, False, f"Error")
 
     def check_pod_security_context(
             self, authorized_uid: int, allowed_teams: List[int],
