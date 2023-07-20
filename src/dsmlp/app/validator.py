@@ -144,6 +144,8 @@ class Validator:
     def check_security_contexts(self, authorized_uid: int,  allowed_teams: List[int], containers: List[Container]):
         for container in containers:
             securityContext = container.securityContext
+            if securityContext is None:
+                return
 
             if securityContext.runAsUser is not None and authorized_uid != securityContext.runAsUser:
                 raise ValidationFailure(f"spec.containers.securityContext: invalid uid {securityContext.runAsUser}")
