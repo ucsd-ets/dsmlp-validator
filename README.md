@@ -1,27 +1,15 @@
-# DSMLP Validating Admission Controller
+# DSMLP Validator
 
-Validates pods for uid and gid.
+The DSMLP validator is an admission controller that validates a pod's uid and gid against AWSed.
 
-# Dev Environment
+It checks the pod security context, and the security contexts of containers and init containers.
 
-**Run Server**
+It is deployed with the [dsmlp-validator](https://github.com/ucsd-ets/sic-charts/tree/main/charts/dsmlp-validator) chart.
 
-```
-python -m dsmlp.admission_controller
-```
 
-**Source layout**
+# Development Environment
 
-```
-|- src
-|  |- dsmlp
-|     |- app
-      |- ext
-      |- plugin
-|- tests
-```
-
-## Ubuntu 20 Focal/WSL 2
+Here's how to set the project up under Ubuntu.
 
 ```
 sudo apt install python3.9 python3.9-venv
@@ -33,19 +21,50 @@ pip install .[test]
 pip install --editable .
 ```
 
-```
-DOCKER_BUILDKIT=1 docker build -t dsmlp-validator .
-docker run --rm -it -p 9997:8080 dsmlp-validator:latest
-curl -X POST  localhost:9997/validate -H 'Content-Type: application/json' -d @tests/admission-review.json
-```
-## Tests
+## Testing
+
+How to run the tests:
+
 
 ```
-tox
+pytest
 
 #or
 
-pytest
+tox
+```
+
+# Dev server
+
+Running with Python
+
+```
+python -m dsmlp.admission_controller
+```
+
+Running with Docker
+
+```
+DOCKER_BUILDKIT=1 docker build -t dsmlp-validator .
+docker run --rm -it -p 9997:8080 dsmlp-validator:latest
+```
+
+Send a request with curl
+
+```
+curl -X POST  localhost:9997/validate -H 'Content-Type: application/json' -d @tests/admission-review.json
+```
+
+# Source layout
+
+```
+|- src
+|  |- dsmlp
+|  |  |- app      # main app
+|  |  |- ext      # plugin implementations
+|  |  |- plugin   # plugin interfaces
+|  |- admission_controller.py # flask entrypoint
+|- tests
 ```
 
 # Cert
