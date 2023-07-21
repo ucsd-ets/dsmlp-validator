@@ -52,8 +52,8 @@ waitress-serve --listen=*:8080 --call 'dsmlp.admission_controller:create_app'
 Running with Docker
 
 ```
-DOCKER_BUILDKIT=1 docker build -t dsmlp-validator .
-docker run --rm -it -p 9997:8080 dsmlp-validator:latest
+DOCKER_BUILDKIT=1 docker build -t dsmlp-validator:latest .
+docker run --rm -it --env-file .env -p 8080:8080 dsmlp-validator:latest
 ```
 
 Send a request with curl
