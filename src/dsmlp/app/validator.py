@@ -71,11 +71,6 @@ class AdmissionReview:
     request: Request
 
 
-# class UidValidator:
-#     def evaluate(self, review: AdmissionReview):
-#         pass
-
-
 class ValidationFailure(Exception):
     def __init__(self, message: str) -> None:
         self.message = message
@@ -91,28 +86,36 @@ class Validator:
     def validate_request(self, admission_review_json):
         self.logger.debug("request=" + json.dumps(admission_review_json, indent=2))
         review: AdmissionReview = AdmissionReview.from_dict(admission_review_json)
-        request: Request = review.request
-        request_uid = request.uid
-        namespace_name = review.request.namespace
-        username = namespace_name
-        self.logger.info(
-            f"Validating request username={request.userInfo.username} namespace={namespace_name} uid={request_uid}")
 
         try:
-            self.validate_pod(review.request)
-        except ValidationFailure as ex:
-            self.logger.info(f"Denied request username={username} namespace={namespace_name} reason={ex.message}")
-            return self.admission_response(request_uid, False, f"{ex.message}")
+            return self.handle_request(review.request)
         except Exception as ex:
             self.logger.exception(ex)
-            self.logger.info(f"Denied request username={username} namespace={namespace_name} reason=Error")
-            return self.admission_response(request_uid, False, f"Error")
+            self.logger.info(
+                f"Denied request username={review.request.userInfo.username} namespace={review.request.namespace} reason=Error uid={review.request.uid}")
+
+            return self.admission_response(review.request.uid, False, f"Error")
+
+    def handle_request(self, request: Request):
+        self.logger.info(
+            f"Validating request username={request.userInfo.username} namespace={request.namespace} uid={request.uid}")
+
+        try:
+            self.validate_pod(request)
+        except ValidationFailure as ex:
+            self.logger.info(
+                f"Denied request username={request.userInfo.username} namespace={request.namespace} reason={ex.message} uid={request.uid}")
+
+            return self.admission_response(request.uid, False, f"{ex.message}")
 
         self.logger.info(
-            f"Allowed request username={request.userInfo.username} namespace={namespace_name} uid={request_uid}")
-        return self.admission_response(request_uid, True, "Allowed")
+            f"Allowed request username={request.userInfo.username} namespace={request.namespace} uid={request.uid}")
+        return self.admission_response(request.uid, True, "Allowed")
 
     def validate_pod(self, request: Request):
+        """
+        Validate pods for namespaces with the 'k8s-sync' label
+        """
         username = request.namespace
         namespace = self.kube.get_namespace(request.namespace)
 

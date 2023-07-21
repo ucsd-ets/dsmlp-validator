@@ -168,7 +168,7 @@ class TestValidator:
                     }}})
 
         assert_that(self.logger.messages, has_item(
-            f"INFO Denied request username=user2 namespace=user2 reason={response['response']['status']['message']}"))
+            f"INFO Denied request username=user2 namespace=user2 reason={response['response']['status']['message']} uid=705ab4f5-6393-11e8-b7cc-42010a800002"))
 
     def test_deny_unknown_user(self):
         response = self.when_validate(
