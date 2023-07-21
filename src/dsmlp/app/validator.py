@@ -78,9 +78,8 @@ class ValidationFailure(Exception):
 
 
 class Validator:
-    def __init__(self, awsed: AwsedClient, kube: KubeClient, logger: Logger) -> None:
+    def __init__(self, awsed: AwsedClient, logger: Logger) -> None:
         self.awsed = awsed
-        self.kube = kube
         self.logger = logger
 
     def validate_request(self, admission_review_json):
@@ -117,20 +116,20 @@ class Validator:
         Validate pods for namespaces with the 'k8s-sync' label
         """
         username = request.namespace
-        namespace = self.kube.get_namespace(request.namespace)
+#        namespace = self.kube.get_namespace(request.namespace)
 
-        if 'k8s-sync' in namespace.labels:
-            user = self.awsed.describe_user(username)
-            allowed_uid = user.uid
+#        if 'k8s-sync' in namespace.labels:
+        user = self.awsed.describe_user(username)
+        allowed_uid = user.uid
 
-            team_response = self.awsed.list_user_teams(username)
-            allowed_gids = [team.gid for team in team_response.teams]
-            allowed_gids.append(0)
-            allowed_gids.append(100)
+        team_response = self.awsed.list_user_teams(username)
+        allowed_gids = [team.gid for team in team_response.teams]
+        allowed_gids.append(0)
+        allowed_gids.append(100)
 
-            spec = request.object.spec
-            self.validate_pod_security_context(allowed_uid, allowed_gids, spec.securityContext)
-            self.validate_containers(allowed_uid, allowed_gids, spec)
+        spec = request.object.spec
+        self.validate_pod_security_context(allowed_uid, allowed_gids, spec.securityContext)
+        self.validate_containers(allowed_uid, allowed_gids, spec)
 
     def validate_pod_security_context(
             self,

@@ -4,22 +4,18 @@ from dsmlp.app.validator import Validator
 from dsmlp.plugin.awsed import ListTeamsResponse, TeamJson, UserResponse
 from dsmlp.plugin.kube import Namespace
 from hamcrest import assert_that, contains_inanyorder, equal_to, has_item
-from tests.fakes import FakeAwsedClient, FakeKubeClient, FakeLogger
+from tests.fakes import FakeAwsedClient, FakeLogger
 
 
 class TestValidator:
     def setup_method(self) -> None:
+        self.logger = FakeLogger()
         self.awsed_client = FakeAwsedClient()
-        self.kube = FakeKubeClient()
 
         self.awsed_client.add_user('user10', UserResponse(uid=10))
-        self.kube.add_namespace('user10', Namespace(name='user10', labels={'k8s-sync': 'set'}))
         self.awsed_client.add_teams('user10', ListTeamsResponse(
             teams=[TeamJson(gid=1000)]
         ))
-        self.kube.add_namespace('kube-system', Namespace(name='kube-system', labels={}))
-
-        self.logger = FakeLogger()
 
     def test_log_request_details(self):
         self.when_validate(
@@ -44,7 +40,6 @@ class TestValidator:
 
     def test_pod_security_context(self):
         self.awsed_client.add_user('user1', UserResponse(uid=1))
-        self.kube.add_namespace('user1', Namespace(name='user1', labels={'k8s-sync': 'set'}))
 
         response = self.when_validate(
             {
@@ -78,7 +73,6 @@ class TestValidator:
 
     def test_security_context(self):
         self.awsed_client.add_user('user1', UserResponse(uid=1))
-        self.kube.add_namespace('user1', Namespace(name='user1', labels={'k8s-sync': 'set'}))
 
         response = self.when_validate(
             {
@@ -121,7 +115,6 @@ class TestValidator:
         Deny the request.
         """
         self.awsed_client.add_user('user2', UserResponse(uid=2))
-        self.kube.add_namespace('user2', Namespace(name='user2', labels={'k8s-sync': 'set'}))
 
         response = self.when_validate(
             {
@@ -151,7 +144,6 @@ class TestValidator:
 
     def test_failures_are_logged(self):
         self.awsed_client.add_user('user2', UserResponse(uid=2))
-        self.kube.add_namespace('user2', Namespace(name='user2', labels={'k8s-sync': 'set'}))
 
         response = self.when_validate(
             {
@@ -197,7 +189,6 @@ class TestValidator:
 
     def test_deny_pod_security_context(self):
         self.awsed_client.add_user('user2', UserResponse(uid=2))
-        self.kube.add_namespace('user2', Namespace(name='user2', labels={'k8s-sync': 'set'}))
 
         response = self.when_validate(
             {
@@ -237,7 +228,6 @@ class TestValidator:
         Deny the request.
         """
         self.awsed_client.add_user('user2', UserResponse(uid=2))
-        self.kube.add_namespace('user2', Namespace(name='user2', labels={'k8s-sync': 'set'}))
 
         response = self.when_validate(
             {
@@ -454,35 +444,36 @@ class TestValidator:
                     "message": "Allowed"
                 }}}))
 
-    def test_unlabelled_namespace_can_use_any_uid(self):
-        self.kube.add_namespace('kube-system', Namespace(name='kube-system', labels={}))
+    # no longer needed since the webhook filters for k9s-sync namespaces only
+    # def test_unlabelled_namespace_can_use_any_uid(self):
+    #     self.kube.add_namespace('kube-system', Namespace(name='kube-system', labels={}))
 
-        response = self.when_validate(
-            {
-                "request": {
-                    "uid": "705ab4f5-6393-11e8-b7cc-42010a800002",
-                    "userInfo": {
-                        "username": "user10"
-                    },
-                    "namespace": "kube-system",
-                    "object": {
-                        "spec": {
-                            "containers": [{}]
-                        }
-                    }
-                }
-            }
-        )
+    #     response = self.when_validate(
+    #         {
+    #             "request": {
+    #                 "uid": "705ab4f5-6393-11e8-b7cc-42010a800002",
+    #                 "userInfo": {
+    #                     "username": "user10"
+    #                 },
+    #                 "namespace": "kube-system",
+    #                 "object": {
+    #                     "spec": {
+    #                         "containers": [{}]
+    #                     }
+    #                 }
+    #             }
+    #         }
+    #     )
 
-        assert_that(response, equal_to({
-            "apiVersion": "admission.k8s.io/v1",
-            "kind": "AdmissionReview",
-            "response": {
-                    "uid": "705ab4f5-6393-11e8-b7cc-42010a800002",
-                    "allowed": True,
-                    "status": {
-                        "message": "Allowed"
-                    }}}))
+    #     assert_that(response, equal_to({
+    #         "apiVersion": "admission.k8s.io/v1",
+    #         "kind": "AdmissionReview",
+    #         "response": {
+    #                 "uid": "705ab4f5-6393-11e8-b7cc-42010a800002",
+    #                 "allowed": True,
+    #                 "status": {
+    #                     "message": "Allowed"
+    #                 }}}))
 
     def test_log_allowed_requests(self):
         self.when_validate(
@@ -492,7 +483,7 @@ class TestValidator:
                     "userInfo": {
                         "username": "user10"
                     },
-                    "namespace": "kube-system",
+                    "namespace": "user10",
                     "object": {
                         "spec": {
                             "containers": [{}]
@@ -503,10 +494,10 @@ class TestValidator:
         )
 
         assert_that(self.logger.messages, has_item(
-            "INFO Allowed request username=user10 namespace=kube-system uid=705ab4f5-6393-11e8-b7cc-42010a800002"))
+            "INFO Allowed request username=user10 namespace=user10 uid=705ab4f5-6393-11e8-b7cc-42010a800002"))
 
     def when_validate(self, json):
-        validator = Validator(self.awsed_client, self.kube, self.logger)
+        validator = Validator(self.awsed_client, self.logger)
         response = validator.validate_request(json)
 
         return response
