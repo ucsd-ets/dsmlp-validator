@@ -7,7 +7,7 @@ from hamcrest import assert_that, contains_inanyorder, equal_to, has_item
 from tests.fakes import FakeAwsedClient, FakeKubeClient, FakeLogger
 
 
-class TestDirCreate:
+class TestValidator:
     def setup_method(self) -> None:
         self.awsed_client = FakeAwsedClient()
         self.kube = FakeKubeClient()
