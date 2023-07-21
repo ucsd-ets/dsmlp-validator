@@ -95,34 +95,11 @@ class Validator:
         request_uid = request.uid
         namespace_name = review.request.namespace
         username = namespace_name
+        self.logger.info(
+            f"Validating request username={request.userInfo.username} namespace={namespace_name} uid={request_uid}")
 
         try:
-            self.logger.info(f"Validating request username={request.userInfo.username} namespace={namespace_name}")
-
-            namespace = self.kube.get_namespace(namespace_name)
-
-            labels = namespace.labels
-            if not 'k8s-sync' in labels:
-                self.logger.info(f"Allowed namespace={namespace_name}")
-                return self.admission_response(request_uid, True, "Allowed")
-
-            user = self.awsed.describe_user(username)
-            user_uid = user.uid
-
-            team_response = self.awsed.list_user_teams(username)
-            allowed_teams = [team.gid for team in team_response.teams]
-            allowed_teams.append(0)
-            allowed_teams.append(100)
-
-            namespace = self.kube.get_namespace(username)
-            spec = review.request.object.spec
-
-            if spec.securityContext is not None:
-                self.validate_pod_security_context(user_uid, allowed_teams, spec.securityContext)
-
-            self.validate_containers(user_uid, allowed_teams, spec)
-
-            return self.admission_response(request_uid, True, "Allowed")
+            self.validate_pod(review.request)
         except ValidationFailure as ex:
             self.logger.info(f"Denied request username={username} namespace={namespace_name} reason={ex.message}")
             return self.admission_response(request_uid, False, f"{ex.message}")
@@ -131,11 +108,35 @@ class Validator:
             self.logger.info(f"Denied request username={username} namespace={namespace_name} reason=Error")
             return self.admission_response(request_uid, False, f"Error")
 
+        self.logger.info(
+            f"Allowed request username={request.userInfo.username} namespace={namespace_name} uid={request_uid}")
+        return self.admission_response(request_uid, True, "Allowed")
+
+    def validate_pod(self, request: Request):
+        username = request.namespace
+        namespace = self.kube.get_namespace(request.namespace)
+
+        if 'k8s-sync' in namespace.labels:
+            user = self.awsed.describe_user(username)
+            allowed_uid = user.uid
+
+            team_response = self.awsed.list_user_teams(username)
+            allowed_gids = [team.gid for team in team_response.teams]
+            allowed_gids.append(0)
+            allowed_gids.append(100)
+
+            spec = request.object.spec
+            self.validate_pod_security_context(allowed_uid, allowed_gids, spec.securityContext)
+            self.validate_containers(allowed_uid, allowed_gids, spec)
+
     def validate_pod_security_context(
             self,
             authorized_uid: int,
             allowed_teams: List[int],
             securityContext: PodSecurityContext):
+
+        if securityContext is None:
+            return
 
         if securityContext.runAsUser is not None and authorized_uid != securityContext.runAsUser:
             raise ValidationFailure(f"spec.securityContext: uid must be in range [{authorized_uid}]")

@@ -22,7 +22,7 @@ class TestDirCreate:
         self.logger = FakeLogger()
 
     def test_log_request_details(self):
-        response = self.when_validate(
+        self.when_validate(
             {
                 "request": {
                     "uid": "705ab4f5-6393-11e8-b7cc-42010a800002",
@@ -40,7 +40,7 @@ class TestDirCreate:
         )
 
         assert_that(self.logger.messages, has_item(
-            "INFO Validating request username=system:kube-system namespace=user10"))
+            "INFO Allowed request username=system:kube-system namespace=user10 uid=705ab4f5-6393-11e8-b7cc-42010a800002"))
 
     def test_pod_security_context(self):
         self.awsed_client.add_user('user1', UserResponse(uid=1))
@@ -483,8 +483,27 @@ class TestDirCreate:
                     "status": {
                         "message": "Allowed"
                     }}}))
+
+    def test_log_allowed_requests(self):
+        self.when_validate(
+            {
+                "request": {
+                    "uid": "705ab4f5-6393-11e8-b7cc-42010a800002",
+                    "userInfo": {
+                        "username": "user10"
+                    },
+                    "namespace": "kube-system",
+                    "object": {
+                        "spec": {
+                            "containers": [{}]
+                        }
+                    }
+                }
+            }
+        )
+
         assert_that(self.logger.messages, has_item(
-            "INFO Allowed namespace=kube-system"))
+            "INFO Allowed request username=user10 namespace=kube-system uid=705ab4f5-6393-11e8-b7cc-42010a800002"))
 
     def when_validate(self, json):
         validator = Validator(self.awsed_client, self.kube, self.logger)
