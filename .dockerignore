@@ -4,3 +4,4 @@
 .git
 .pytest_cache
 build
+.env
