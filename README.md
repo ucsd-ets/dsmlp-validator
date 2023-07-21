@@ -36,10 +36,17 @@ tox
 
 # Dev server
 
+Setup `.env` file:
+
+```
+AWSED_ENDPOINT=
+AWSED_API_KEY=
+```
+
 Running with Python
 
 ```
-python -m dsmlp.admission_controller
+waitress-serve --listen=*:8080 --call 'dsmlp.admission_controller:create_app'
 ```
 
 Running with Docker
@@ -52,7 +59,7 @@ docker run --rm -it -p 9997:8080 dsmlp-validator:latest
 Send a request with curl
 
 ```
-curl -X POST  localhost:9997/validate -H 'Content-Type: application/json' -d @tests/admission-review.json
+curl -X POST localhost:8080/validate -H 'Content-Type: application/json' -d @tests/admission-review.json
 ```
 
 # Source layout
