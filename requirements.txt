@@ -6,4 +6,4 @@ waitress
 PyHamcrest
 requests_mock
 dataclasses-json
-gunicorn
+python-dotenv
