@@ -1,7 +1,7 @@
 import os
 import requests_mock
 from hamcrest import assert_that, equal_to
-from dsmlp.ext.awsed import DefaultAwsedClient
+from dsmlp.ext.awsed import DefaultAwsedClient, ExternalAwsedClient
 from dsmlp.plugin.awsed import ListTeamsResponse, TeamJson, UserResponse
 
 
@@ -20,10 +20,14 @@ class TestAwsedClient:
         """test list courses by tag"""
         requests_mock.get('https://awsed.ucsd.edu/api/users/user1', text="""
             {
-                "uid":1
+                "username": "user1",
+                "firstName": "user",
+                "lastName": "1",
+                "uid":1,
+                "enrollments": ["ABC1", "ABC2"]
             }
             """)
-        c = DefaultAwsedClient()
+        c = ExternalAwsedClient()
         user = c.describe_user("user1")
 
         assert_that(user, equal_to(
@@ -36,12 +40,66 @@ class TestAwsedClient:
             {
                 "teams": [
                     {
-                        "gid": 1
+                        "teamName": "string",
+                        "sanitizedTeamName": "string",
+                        "uniqueName": "string",
+                        "gid": 1,
+                        "members": [
+                            {
+                            "username": "string",
+                            "firstName": "string",
+                            "lastName": "string",
+                            "uid": 0,
+                            "role": "string"
+                            }
+                        ],
+                        "course": {
+                            "tags": [
+                            "string"
+                            ],
+                            "enrollments": [
+                            {
+                                "username": "string",
+                                "firstName": "string",
+                                "lastName": "string",
+                                "uid": 0,
+                                "role": "string"
+                            }
+                            ],
+                            "courseId": "string",
+                            "pool": {
+                            "name": "string",
+                            "poolRootName": "string",
+                            "rule": "string",
+                            "ou": "string",
+                            "courseName": "string",
+                            "mode": "string"
+                            },
+                            "active": true,
+                            "grader": {
+                            "username": "string",
+                            "firstName": "string",
+                            "lastName": "string",
+                            "uid": 0,
+                            "role": "string"
+                            },
+                            "fileSystem": {
+                            "identifier": "string",
+                            "server": "string",
+                            "path": "string"
+                            },
+                            "snowTicket": "string",
+                            "quarter": "string",
+                            "subject": "string",
+                            "courseNumber": "string",
+                            "instructor": "string",
+                            "instructorEmail": "string"
+                        }
                     }
                 ]
             }
             """)
-        c = DefaultAwsedClient()
+        c = ExternalAwsedClient()
         user = c.list_user_teams('user1')
 
         assert_that(user, equal_to(
