@@ -7,3 +7,4 @@ PyHamcrest
 requests_mock
 dataclasses-json
 python-dotenv
+git+https://github.com/ucsd-ets/awsed_python_client.git@Rebuild
