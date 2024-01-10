@@ -1,5 +1,5 @@
 dacite
-kubernetes==24.2.0
+kubernetes>=28,<29
 flask==2.3.2
 jsonify
 waitress
@@ -7,4 +7,4 @@ PyHamcrest
 requests_mock
 dataclasses-json
 python-dotenv
-git+https://github.com/ucsd-ets/awsed_python_client.git@Rebuild
+git+https://github.com/ucsd-ets/awsed_python_client.git@2024.1.2-RC1
