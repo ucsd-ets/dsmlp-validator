@@ -35,7 +35,7 @@ class DefaultKubeClient(KubeClient):
         
         gpu_count = 0
         for pod in pods.items:
-            gpu_count += pod.spec.containers.resources.limits['GPU_LABEL']
+            gpu_count += int(pod.spec.containers.resources.requests['GPU_LABEL'])
         
         return gpu_count
         

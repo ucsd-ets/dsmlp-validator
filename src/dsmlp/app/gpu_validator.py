@@ -36,7 +36,7 @@ class GPUValidator(ComponentValidator):
         requested_gpus = 0
         for container in request.object.spec.containers:
             if container.resources is not None and GPU_LABEL in container.resources.requests:
-                requested_gpus += container.resources.requests[GPU_LABEL]
+                requested_gpus += int(container.resources.requests[GPU_LABEL])
             
         if requested_gpus + curr_gpus > namespace.gpu_quota:
             raise ValidationFailure(f"GPU quota exceeded. Requested {requested_gpus} but with {curr_gpus} already in use, the quota of {namespace.gpu_quota} would be exceeded.")
