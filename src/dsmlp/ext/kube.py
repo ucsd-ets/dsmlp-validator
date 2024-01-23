@@ -20,7 +20,7 @@ class DefaultKubeClient(KubeClient):
         metadata: V1ObjectMeta = v1namespace.metadata
         
         gpu_quota = 1
-        if GPU_LIMIT_ANNOTATION in metadata.annotations:
+        if metadata.annotations is not None and GPU_LIMIT_ANNOTATION in metadata.annotations:
             gpu_quota = int(metadata.annotations[GPU_LIMIT_ANNOTATION])
         
         return Namespace(
