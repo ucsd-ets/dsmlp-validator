@@ -18,10 +18,15 @@ class DefaultKubeClient(KubeClient):
         api = self.get_policy_api()
         v1namespace: V1Namespace = api.read_namespace(name=name)
         metadata: V1ObjectMeta = v1namespace.metadata
+        
+        gpu_quota = 1
+        if GPU_LIMIT_ANNOTATION in metadata.annotations:
+            gpu_quota = int(metadata.annotations[GPU_LIMIT_ANNOTATION])
+        
         return Namespace(
             name=metadata.name,
             labels=metadata.labels,
-            gpu_quota=metadata.annotations[GPU_LIMIT_ANNOTATION])
+            gpu_quota=gpu_quota)
     
     def get_gpus_in_namespace(self, name: str) -> int:
         api = self.get_policy_api()

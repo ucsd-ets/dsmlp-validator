@@ -47,6 +47,7 @@ class PodSpec:
     containers: List[Container]
     initContainers: Optional[List[Container]] = None
     securityContext: Optional[PodSecurityContext] = None
+    priorityClassName: Optional[str] = None
 
 
 @dataclass_json

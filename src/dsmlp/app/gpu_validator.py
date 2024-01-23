@@ -25,6 +25,11 @@ class GPUValidator(ComponentValidator):
         Validate pods for namespaces with the 'k8s-sync' label
         """
         
+        # Low priority pods pass through
+        priority = request.object.spec.priorityClassName
+        if priority is not None and priority == LOW_PRIORITY_CLASS:
+            return
+        
         namespace = self.kube.get_namespace(request.namespace)
         curr_gpus = self.kube.get_gpus_in_namespace(request.namespace)
         
