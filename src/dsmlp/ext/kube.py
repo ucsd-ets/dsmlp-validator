@@ -6,6 +6,9 @@ from kubernetes.client.rest import ApiException
 
 from dsmlp.plugin.kube import KubeClient, Namespace,  NotFound
 
+GPU_LABEL = "nvidia.com/gpu"
+GPU_LIMIT_ANNOTATION = 'gpu-limit'
+
 
 class DefaultKubeClient(KubeClient):
     """
@@ -18,7 +21,20 @@ class DefaultKubeClient(KubeClient):
         metadata: V1ObjectMeta = v1namespace.metadata
         return Namespace(
             name=metadata.name,
-            labels=metadata.labels)
+            labels=metadata.labels,
+            gpu_quota=metadata.annotations[GPU_LIMIT_ANNOTATION])
+    
+    def get_gpus_in_namespace(self, name: str) -> int:
+        api = self.get_policy_api()
+        V1Namespace: V1Namespace = api.read_namespace(name=name)
+        pods = api.list_namespaced_pod(namespace=name)
+        
+        gpu_count = 0
+        for pod in pods.items:
+            gpu_count += pod.spec.containers.resources.limits['GPU_LABEL']
+        
+        return gpu_count
+        
 
     # noinspection PyMethodMayBeStatic
     def get_policy_api(self) -> CoreV1Api:

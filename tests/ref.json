@@ -1,0 +1,94 @@
+{
+    "kind": "AdmissionReview",
+    "apiVersion": "admission.k8s.io/v1beta1",
+    "request": {
+        "uid": "bf72b12b-0b87-11e8-ad08-020ee0ad1b60",
+        "kind": {
+            "group": "",
+            "version": "v1",
+            "kind": "Pod"
+        },
+        "resource": {
+            "group": "",
+            "version": "v1",
+            "resource": "pods"
+        },
+        "namespace": "charms",
+        "operation": "CREATE",
+        "userInfo": {
+            "username": "lucky",
+            "groups": [
+                "system:masters",
+                "system:authenticated"
+            ]
+        },
+        "object": {
+            "metadata": {
+                "name": "webhookx",
+                "namespace": "default",
+                "uid": "bf72ab8e-0b87-11e8-ad08-020ee0ad1b60",
+                "creationTimestamp": "2018-02-06T21:50:29Z"
+            },
+            "spec": {
+                "volumes": [
+                    {
+                        "name": "default-token-nd57q",
+                        "secret": {
+                            "secretName": "default-token-nd57q"
+                        }
+                    }
+                ],
+                "containers": [
+                    {
+                        "name": "webhookx",
+                        "image": "nginx",
+                        "resources": {
+                            "limits": {
+                                "alpha.kubernetes.io/nvidia-gpu": "1"
+                            },
+                            "requests": {
+                                "alpha.kubernetes.io/nvidia-gpu": "1"
+                            }
+                        },
+                        "volumeMounts": [
+                            {
+                                "name": "default-token-nd57q",
+                                "readOnly": true,
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount"
+                            }
+                        ],
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "imagePullPolicy": "Always"
+                    }
+                ],
+                "restartPolicy": "Always",
+                "terminationGracePeriodSeconds": 30,
+                "dnsPolicy": "ClusterFirst",
+                "serviceAccountName": "default",
+                "serviceAccount": "default",
+                "securityContext": {},
+                "schedulerName": "default-scheduler",
+                "tolerations": [
+                    {
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "effect": "NoExecute",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "effect": "NoExecute",
+                        "tolerationSeconds": 300
+                    }
+                ]
+            },
+            "status": {
+                "phase": "Pending",
+                "qosClass": "BestEffort"
+            }
+        },
+        "oldObject": null
+    }
+}
