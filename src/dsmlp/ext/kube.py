@@ -6,8 +6,7 @@ from kubernetes.client.rest import ApiException
 
 from dsmlp.plugin.kube import KubeClient, Namespace,  NotFound
 
-GPU_LABEL = "nvidia.com/gpu"
-GPU_LIMIT_ANNOTATION = 'gpu-limit'
+from dsmlp.app.config import *
 
 
 class DefaultKubeClient(KubeClient):

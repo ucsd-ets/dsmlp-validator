@@ -12,13 +12,14 @@ import jsonify
 from dsmlp.plugin.logger import Logger
 from abc import ABCMeta, abstractmethod
 from dsmlp.app.id_validator import IDValidator
+from dsmlp.app.gpu_validator import GPUValidator
 from dsmlp.app.types import *
 
 class Validator:
-    def __init__(self, awsed: AwsedClient, logger: Logger) -> None:
+    def __init__(self, awsed: AwsedClient, kube: KubeClient, logger: Logger) -> None:
         self.awsed = awsed
         self.logger = logger
-        self.component_validators = [IDValidator(awsed, logger)]
+        self.component_validators = [IDValidator(awsed, logger), GPUValidator(kube, logger)]
 
     def validate_request(self, admission_review_json):
         self.logger.debug("request=" + json.dumps(admission_review_json, indent=2))

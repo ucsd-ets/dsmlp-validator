@@ -4,18 +4,22 @@ from dsmlp.app.validator import Validator
 from dsmlp.plugin.awsed import ListTeamsResponse, TeamJson, UserResponse
 from dsmlp.plugin.kube import Namespace
 from hamcrest import assert_that, contains_inanyorder, equal_to, has_item
-from tests.fakes import FakeAwsedClient, FakeLogger
+from tests.fakes import FakeAwsedClient, FakeLogger, FakeKubeClient
 
 
 class TestValidator:
     def setup_method(self) -> None:
         self.logger = FakeLogger()
         self.awsed_client = FakeAwsedClient()
+        self.kube_client = FakeKubeClient()
 
         self.awsed_client.add_user('user10', UserResponse(uid=10))
         self.awsed_client.add_teams('user10', ListTeamsResponse(
             teams=[TeamJson(gid=1000)]
         ))
+        
+        self.kube_client.add_namespace('user10', Namespace(name='user10', labels={'k8s-sync': 'true'}, gpu_quota=10))
+        self.kube_client.set_existing_gpus('user10', 0)
 
     def test_log_request_details(self):
         self.when_validate(
@@ -40,6 +44,7 @@ class TestValidator:
 
     def test_pod_security_context(self):
         self.awsed_client.add_user('user1', UserResponse(uid=1))
+        self.kube_client.add_namespace('user1', Namespace(name='user1', labels={'k8s-sync': 'true'}, gpu_quota=10))
 
         response = self.when_validate(
             {
@@ -73,6 +78,7 @@ class TestValidator:
 
     def test_security_context(self):
         self.awsed_client.add_user('user1', UserResponse(uid=1))
+        self.kube_client.add_namespace('user1', Namespace(name='user1', labels={'k8s-sync': 'true'}, gpu_quota=10))
 
         response = self.when_validate(
             {
@@ -497,7 +503,7 @@ class TestValidator:
             "INFO Allowed request username=user10 namespace=user10 uid=705ab4f5-6393-11e8-b7cc-42010a800002"))
 
     def when_validate(self, json):
-        validator = Validator(self.awsed_client, self.logger)
+        validator = Validator(self.awsed_client, self.kube_client, self.logger)
         response = validator.validate_request(json)
 
         return response

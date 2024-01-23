@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 import json
-from typing import List, Optional
+from typing import List, Optional, Dict
 
 from dataclasses_json import dataclass_json
 from dsmlp.plugin.awsed import AwsedClient, UnsuccessfulRequest
@@ -19,12 +19,17 @@ class SecurityContext:
     runAsUser: Optional[int] = None
     runAsGroup: Optional[int] = None
 
+@dataclass_json
+@dataclass
+class ResourceRequirements:
+    requests: Optional[Dict[str, int]] = None
+    limits: Optional[Dict[str, int]] = None
 
 @dataclass_json
 @dataclass
 class Container:
     securityContext: Optional[SecurityContext] = None
-
+    resources: Optional[ResourceRequirements] = None
 
 @dataclass_json
 @dataclass
