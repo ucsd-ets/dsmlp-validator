@@ -5,7 +5,7 @@ from dsmlp.plugin.awsed import ListTeamsResponse, TeamJson, UserResponse
 from dsmlp.plugin.kube import Namespace
 from hamcrest import assert_that, contains_inanyorder, equal_to, has_item
 from tests.fakes import FakeAwsedClient, FakeLogger, FakeKubeClient
-
+from dsmlp.ext.kube import DefaultKubeClient
 
 class TestValidator:
     def setup_method(self) -> None:
@@ -184,6 +184,38 @@ class TestValidator:
                 "allowed": True, "status": {
                     "message": "Allowed"
                 }}}))
+
+    def test_collect_gpus(self):
+        real_kube_client = DefaultKubeClient()
+        
+        from kubernetes.client import V1PodList, V1Pod, V1PodSpec, V1Container, V1ResourceRequirements
+        
+        class FakeInternalClient:
+            def read_namespace(self, name: str) -> Namespace:
+                return "namespace"
+            def list_namespaced_pod(self, namespace: str) -> int:
+                
+                return V1PodList(
+                    items=[
+                        V1Pod(
+                            spec=V1PodSpec(
+                                containers=[
+                                    V1Container(
+                                        name="container1",
+                                        resources=V1ResourceRequirements(
+                                        )
+                                    )
+                                ]
+                            )
+                        )
+                    ]
+                )
+        
+        def get_policy_api():
+            return FakeInternalClient()
+        
+        real_kube_client.get_policy_api = get_policy_api
+        real_kube_client.get_gpus_in_namespace('user10')
 
     def when_validate(self, json):
         validator = Validator(self.awsed_client, self.kube_client, self.logger)
