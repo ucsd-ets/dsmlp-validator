@@ -33,10 +33,19 @@ class GPUValidator(ComponentValidator):
         namespace = self.kube.get_namespace(request.namespace)
         curr_gpus = self.kube.get_gpus_in_namespace(request.namespace)
         
-        requested_gpus = 0
+        utilized_gpus = 0
         for container in request.object.spec.containers:
-            if container.resources is not None and GPU_LABEL in container.resources.requests:
-                requested_gpus += int(container.resources.requests[GPU_LABEL])
+                requested, limit = 0, 0
+                try:
+                    requested = int(container.resources.requests[GPU_LABEL])
+                except (KeyError, AttributeError, TypeError):
+                    pass
+                try:
+                    limit = int(container.resources.requests[GPU_LABEL])
+                except (KeyError, AttributeError, TypeError):
+                    pass
+                    
+                utilized_gpus += max(requested, limit)
             
-        if requested_gpus + curr_gpus > namespace.gpu_quota:
-            raise ValidationFailure(f"GPU quota exceeded. Requested {requested_gpus} but with {curr_gpus} already in use, the quota of {namespace.gpu_quota} would be exceeded.")
+        if utilized_gpus + curr_gpus > namespace.gpu_quota:
+            raise ValidationFailure(f"GPU quota exceeded. Wanted {utilized_gpus} but with {curr_gpus} already in use, the quota of {namespace.gpu_quota} would be exceeded.")
