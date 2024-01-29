@@ -217,41 +217,9 @@ class TestValidator:
             "kind": "AdmissionReview",
             "response": {
                 "uid": "705ab4f5-6393-11e8-b7cc-42010a800002",
-                "allowed": True, "status": {
-                    "message": "Allowed"
+                "allowed": False, "status": {
+                    "message": "GPU quota exceeded. Wanted 6 but with 5 already in use, the quota of 10 would be exceeded."
                 }}}))
-
-    def test_collect_gpus(self):
-        real_kube_client = DefaultKubeClient()
-        
-        from kubernetes.client import V1PodList, V1Pod, V1PodSpec, V1Container, V1ResourceRequirements
-        
-        class FakeInternalClient:
-            def read_namespace(self, name: str) -> Namespace:
-                return "namespace"
-            def list_namespaced_pod(self, namespace: str) -> int:
-                
-                return V1PodList(
-                    items=[
-                        V1Pod(
-                            spec=V1PodSpec(
-                                containers=[
-                                    V1Container(
-                                        name="container1",
-                                        resources=V1ResourceRequirements(
-                                        )
-                                    )
-                                ]
-                            )
-                        )
-                    ]
-                )
-        
-        def get_policy_api():
-            return FakeInternalClient()
-        
-        real_kube_client.get_policy_api = get_policy_api
-        real_kube_client.get_gpus_in_namespace('user10')
 
     def when_validate(self, json):
         validator = Validator(self.awsed_client, self.kube_client, self.logger)

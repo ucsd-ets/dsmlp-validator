@@ -42,7 +42,7 @@ class DefaultKubeClient(KubeClient):
                 except (KeyError, AttributeError, TypeError):
                     pass
                 try:
-                    limit = int(container.resources.requests[GPU_LABEL])
+                    limit = int(container.resources.limits[GPU_LABEL])
                 except (KeyError, AttributeError, TypeError):
                     pass
                     
