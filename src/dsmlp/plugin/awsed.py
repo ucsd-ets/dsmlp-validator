@@ -16,6 +16,7 @@ class ListTeamsResponse:
 @dataclass
 class UserResponse:
     uid: int
+    enrollments: List[str]
 
 
 class AwsedClient(metaclass=ABCMeta):

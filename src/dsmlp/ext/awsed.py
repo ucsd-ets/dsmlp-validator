@@ -15,7 +15,9 @@ class ExternalAwsedClient(AwsedClient):
 
     def describe_user(self, username: str) -> UserResponse:
         usrResultJson = self.client.describe_user(username)
-        return UserResponse(uid=usrResultJson.uid)
+        if not usrResultJson:
+            return None
+        return UserResponse(uid=usrResultJson.uid, enrollments=usrResultJson.enrollments)
 
     def list_user_teams(self, username: str) -> ListTeamsResponse:
         usrTeams = self.client.list_teams(username)

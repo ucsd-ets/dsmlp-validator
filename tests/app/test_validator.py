@@ -12,7 +12,7 @@ class TestValidator:
         self.logger = FakeLogger()
         self.awsed_client = FakeAwsedClient()
 
-        self.awsed_client.add_user('user10', UserResponse(uid=10))
+        self.awsed_client.add_user('user10', UserResponse(uid=10, enrollments=[]))
         self.awsed_client.add_teams('user10', ListTeamsResponse(
             teams=[TeamJson(gid=1000)]
         ))
@@ -27,6 +27,9 @@ class TestValidator:
                         "username": "system:kube-system"
                     },
                     "object": {
+                        "metadata": {
+                            "labels": {}
+                        },
                         "spec": {
                             "containers": [{}]
                         },
@@ -38,8 +41,8 @@ class TestValidator:
         assert_that(self.logger.messages, has_item(
             "INFO Allowed request username=system:kube-system namespace=user10 uid=705ab4f5-6393-11e8-b7cc-42010a800002"))
 
-    def test_pod_security_context(self):
-        self.awsed_client.add_user('user1', UserResponse(uid=1))
+    def test_course_enrollment(self):
+        self.awsed_client.add_user('user1', UserResponse(uid=1, enrollments=["course1"]))
 
         response = self.when_validate(
             {
@@ -50,6 +53,47 @@ class TestValidator:
                     },
                     "namespace": "user1",
                     "object": {
+                        "metadata": {
+                            "labels": {
+                                "dsmlp/course": "course1"
+                            }
+                        },
+                        "spec": {
+                            "securityContext": {
+                                "runAsUser": 1
+                            },
+                            "containers": []
+                        },
+                    }
+                }
+            }
+        )
+
+        assert_that(response, equal_to({
+            "apiVersion": "admission.k8s.io/v1",
+            "kind": "AdmissionReview",
+            "response": {
+                "uid": "705ab4f5-6393-11e8-b7cc-42010a800002",
+                "allowed": True,
+                "status": {
+                    "message": "Allowed"
+                }}}))
+
+    def test_pod_security_context(self):
+        self.awsed_client.add_user('user1', UserResponse(uid=1, enrollments=[]))
+
+        response = self.when_validate(
+            {
+                "request": {
+                    "uid": "705ab4f5-6393-11e8-b7cc-42010a800002",
+                    "userInfo": {
+                        "username": "user1"
+                    },
+                    "namespace": "user1",
+                    "object": {
+                        "metadata": {
+                            "labels": {}
+                        },
                         "spec": {
                             "securityContext": {
                                 "runAsUser": 1
@@ -72,7 +116,7 @@ class TestValidator:
                 }}}))
 
     def test_security_context(self):
-        self.awsed_client.add_user('user1', UserResponse(uid=1))
+        self.awsed_client.add_user('user1', UserResponse(uid=1, enrollments=[]))
 
         response = self.when_validate(
             {
@@ -83,6 +127,9 @@ class TestValidator:
                     },
                     "namespace": "user1",
                     "object": {
+                        "metadata": {
+                            "labels": {}
+                        },
                         "spec": {
                             "securityContext": {
                                 "runAsUser": 1
@@ -114,7 +161,7 @@ class TestValidator:
         but the PodSecurityContext.runAsUser doesn't belong to them.
         Deny the request.
         """
-        self.awsed_client.add_user('user2', UserResponse(uid=2))
+        self.awsed_client.add_user('user2', UserResponse(uid=2, enrollments=[]))
 
         response = self.when_validate(
             {
@@ -125,6 +172,9 @@ class TestValidator:
                     },
                     "namespace": "user2",
                     "object": {
+                        "metadata": {
+                            "labels": {}
+                        },
                         "spec": {
                             "securityContext": {"runAsUser": 3},
                             "containers": []
@@ -143,7 +193,7 @@ class TestValidator:
                 }}}))
 
     def test_failures_are_logged(self):
-        self.awsed_client.add_user('user2', UserResponse(uid=2))
+        self.awsed_client.add_user('user2', UserResponse(uid=2, enrollments=[]))
 
         response = self.when_validate(
             {
@@ -154,11 +204,14 @@ class TestValidator:
                     },
                     "namespace": "user2",
                     "object": {
+                        "metadata": {
+                            "labels": {}
+                        },
                         "spec": {
                             "containers": [],
                             "securityContext": {"runAsUser": 3}},
                     }}})
-
+        
         assert_that(self.logger.messages, has_item(
             f"INFO Denied request username=user2 namespace=user2 reason={response['response']['status']['message']} uid=705ab4f5-6393-11e8-b7cc-42010a800002"))
 
@@ -172,10 +225,51 @@ class TestValidator:
                     },
                     "namespace": "user2",
                     "object": {
+                        "metadata": {
+                            "labels": {}
+                        },
                         "spec": {
                             "containers": [],
-                            "securityContext": {"runAsUser": 3}},
+                            "securityContext": {"runAsUser": 2}},
                     }}})
+        assert_that(response, equal_to({
+            "apiVersion": "admission.k8s.io/v1",
+            "kind": "AdmissionReview",
+            "response": {
+                "uid": "705ab4f5-6393-11e8-b7cc-42010a800002",
+                "allowed": False,
+                "status": {
+                    "message": "namespace: no AWSEd user found with username user2"
+                }}}))
+
+    def test_deny_course_enrollment(self):
+        """
+        The user is launching a Pod,
+        but they are not enrolled in the course in the label "dsmlp/course".
+        Deny the request.
+        """
+        self.awsed_client.add_user('user2', UserResponse(uid=2, enrollments=[]))
+
+        response = self.when_validate(
+            {
+                "request": {
+                    "uid": "705ab4f5-6393-11e8-b7cc-42010a800002",
+                    "userInfo": {
+                        "username": "user2"
+                    },
+                    "namespace": "user2",
+                    "object": {
+                        "metadata": {
+                            "labels": {
+                                "dsmlp/course": "course1"
+                            }
+                        },
+                        "spec": {
+                            "securityContext": {"runAsUser": 2},
+                            "containers": []
+                        }
+                    }
+                }})
 
         assert_that(response, equal_to({
             "apiVersion": "admission.k8s.io/v1",
@@ -184,11 +278,11 @@ class TestValidator:
                 "uid": "705ab4f5-6393-11e8-b7cc-42010a800002",
                 "allowed": False,
                 "status": {
-                    "message": "Error"
+                    "message": "metadata.labels: dsmlp/course must be in range []"
                 }}}))
 
     def test_deny_pod_security_context(self):
-        self.awsed_client.add_user('user2', UserResponse(uid=2))
+        self.awsed_client.add_user('user2', UserResponse(uid=2, enrollments=[]))
 
         response = self.when_validate(
             {
@@ -200,6 +294,9 @@ class TestValidator:
                     "namespace": "user2",
                     "object": {
                         "kind": "Pod",
+                        "metadata": {
+                            "labels": {}
+                        },
                         "spec": {
                             "securityContext": {"runAsUser": 2},
                             "containers": [
@@ -227,7 +324,7 @@ class TestValidator:
         but the uid doesn't belong to them.
         Deny the request.
         """
-        self.awsed_client.add_user('user2', UserResponse(uid=2))
+        self.awsed_client.add_user('user2', UserResponse(uid=2, enrollments=[]))
 
         response = self.when_validate(
             {
@@ -239,6 +336,9 @@ class TestValidator:
                     "namespace": "user2",
                     "object": {
                         "kind": "Pod",
+                        "metadata": {
+                            "labels": {}
+                        },
                         "spec": {
                             "containers": [{}],
                             "initContainers": [
@@ -277,6 +377,9 @@ class TestValidator:
                     "namespace": "user10",
                     "object": {
                         "kind": "Pod",
+                        "metadata": {
+                            "labels": {}
+                        },
                         "spec": {
                             "containers": [{}]
                         }
@@ -304,6 +407,9 @@ class TestValidator:
                     "namespace": "user10",
                     "object": {
                         "kind": "Pod",
+                        "metadata": {
+                            "labels": {}
+                        },
                         "spec": {
                             "securityContext": {"runAsGroup": 2},
                             "containers": [{}]
@@ -333,6 +439,9 @@ class TestValidator:
                     "namespace": "user10",
                     "object": {
                         "kind": "Pod",
+                        "metadata": {
+                            "labels": {}
+                        },
                         "spec": {
                             "securityContext": {"fsGroup": 2},
                             "containers": [{}]
@@ -362,6 +471,9 @@ class TestValidator:
                     "namespace": "user10",
                     "object": {
                         "kind": "Pod",
+                        "metadata": {
+                            "labels": {}
+                        },
                         "spec": {
                             "securityContext": {"supplementalGroups": [2]},
                             "containers": [{}]
@@ -391,6 +503,9 @@ class TestValidator:
                     "namespace": "user10",
                     "object": {
                         "kind": "Pod",
+                        "metadata": {
+                            "labels": {}
+                        },
                         "spec": {
                             "containers": [
                                 {
@@ -422,6 +537,9 @@ class TestValidator:
                     "namespace": "user10",
                     "object": {
                         "kind": "Pod",
+                        "metadata": {
+                            "labels": {}
+                        },
                         "spec": {
                             "securityContext": {"runAsGroup": 0},
                             "containers": [
@@ -485,6 +603,9 @@ class TestValidator:
                     },
                     "namespace": "user10",
                     "object": {
+                        "metadata": {
+                            "labels": {}
+                        },
                         "spec": {
                             "containers": [{}]
                         }
