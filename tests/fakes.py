@@ -27,7 +27,7 @@ class FakeAwsedClient(AwsedClient):
         try:
             return self.users[username]
         except KeyError:
-            raise UnsuccessfulRequest()
+            return None
 
     def add_user(self, username, user: UserResponse):
         self.users[username] = user

@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 import json
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from dataclasses_json import dataclass_json
 from dsmlp.plugin.awsed import AwsedClient, UnsuccessfulRequest
@@ -43,10 +43,16 @@ class PodSpec:
     initContainers: Optional[List[Container]] = None
     securityContext: Optional[PodSecurityContext] = None
 
+@dataclass_json
+@dataclass
+class ObjectMeta:
+    labels: Dict[str, str]
+
 
 @dataclass_json
 @dataclass
 class Object:
+    metadata: ObjectMeta
     spec: PodSpec
 
 
@@ -120,16 +126,27 @@ class Validator:
 
 #        if 'k8s-sync' in namespace.labels:
         user = self.awsed.describe_user(username)
+        if not user:
+            raise ValidationFailure(f"namespace: no AWSEd user found with username {username}")
         allowed_uid = user.uid
+        allowed_courses = user.enrollments
 
         team_response = self.awsed.list_user_teams(username)
         allowed_gids = [team.gid for team in team_response.teams]
         allowed_gids.append(0)
         allowed_gids.append(100)
 
+        metadata = request.object.metadata
         spec = request.object.spec
+        self.validate_course_enrollment(allowed_courses, metadata.labels)
         self.validate_pod_security_context(allowed_uid, allowed_gids, spec.securityContext)
         self.validate_containers(allowed_uid, allowed_gids, spec)
+
+    def validate_course_enrollment(self, allowed_courses: List[str], labels: Dict[str, str]):
+        if not 'dsmlp/course' in labels:
+            return
+        if not labels['dsmlp/course'] in allowed_courses:
+            raise ValidationFailure(f"metadata.labels: dsmlp/course must be in range {allowed_courses}")
 
     def validate_pod_security_context(
             self,
