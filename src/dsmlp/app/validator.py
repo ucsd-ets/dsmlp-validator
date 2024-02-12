@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 import json
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from dataclasses_json import dataclass_json
 from dsmlp.plugin.awsed import AwsedClient, UnsuccessfulRequest
