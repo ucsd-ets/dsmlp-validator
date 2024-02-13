@@ -116,3 +116,16 @@ class IDValidator(ComponentValidator):
         if securityContext.runAsGroup is not None and securityContext.runAsGroup not in allowed_teams:
             raise ValidationFailure(
                 f"spec.{context}.securityContext: gid must be in range {allowed_teams}")
+
+    def admission_response(self, uid, allowed, message):
+        return {
+            "apiVersion": "admission.k8s.io/v1",
+            "kind": "AdmissionReview",
+            "response": {
+                "uid": uid,
+                "allowed": allowed,
+                "status": {
+                    "message": message
+                }
+            }
+        }

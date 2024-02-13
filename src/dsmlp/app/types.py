@@ -1,15 +1,7 @@
+
 from dataclasses import dataclass
-import json
 from typing import List, Optional, Dict
-
 from dataclasses_json import dataclass_json
-from dsmlp.plugin.awsed import AwsedClient, UnsuccessfulRequest
-from dsmlp.plugin.console import Console
-from dsmlp.plugin.course import ConfigProvider
-from dsmlp.plugin.kube import KubeClient, NotFound
-import jsonify
-
-from dsmlp.plugin.logger import Logger
 from abc import ABCMeta, abstractmethod
 
 @dataclass_json
@@ -49,10 +41,16 @@ class PodSpec:
     securityContext: Optional[PodSecurityContext] = None
     priorityClassName: Optional[str] = None
 
+@dataclass_json
+@dataclass
+class ObjectMeta:
+    labels: Dict[str, str]
+
 
 @dataclass_json
 @dataclass
 class Object:
+    metadata: ObjectMeta
     spec: PodSpec
 
 

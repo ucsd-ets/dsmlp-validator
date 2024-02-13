@@ -13,7 +13,7 @@ class TestValidator:
         self.awsed_client = FakeAwsedClient()
         self.kube_client = FakeKubeClient()
 
-        self.awsed_client.add_user('user10', UserResponse(uid=10))
+        self.awsed_client.add_user('user10', UserResponse(uid=10, enrollments=[]))
         self.awsed_client.add_teams('user10', ListTeamsResponse(
             teams=[TeamJson(gid=1000)]
         ))
@@ -31,6 +31,9 @@ class TestValidator:
                     },
                     "namespace": "user10",
                     "object": {
+                        "metadata": {
+                            "labels": {}
+                        },
                         "kind": "Pod",
                         "spec": {
                             "containers": [{}]
@@ -58,6 +61,9 @@ class TestValidator:
                     },
                     "namespace": "user10",
                     "object": {
+                        "metadata": {
+                            "labels": {}
+                        },
                         "kind": "Pod",
                         "spec": {
                             "containers": [{
@@ -91,6 +97,9 @@ class TestValidator:
                     },
                     "namespace": "user10",
                     "object": {
+                        "metadata": {
+                            "labels": {}
+                        },
                         "kind": "Pod",
                         "spec": {
                             "containers": [{
@@ -126,6 +135,9 @@ class TestValidator:
                     },
                     "namespace": "user10",
                     "object": {
+                        "metadata": {
+                            "labels": {}
+                        },
                         "kind": "Pod",
                         "spec": {
                             "containers": [{
@@ -161,6 +173,9 @@ class TestValidator:
                     },
                     "namespace": "user10",
                     "object": {
+                        "metadata": {
+                            "labels": {}
+                        },
                         "kind": "Pod",
                         "spec": {
                             "containers": [{
@@ -198,6 +213,9 @@ class TestValidator:
                     },
                     "namespace": "user10",
                     "object": {
+                        "metadata": {
+                            "labels": {}
+                        },
                         "kind": "Pod",
                         "spec": {
                             "containers": [{
