@@ -72,3 +72,19 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          
+      - name: Scan for vulnerabilities
+        uses: crazy-max/ghaction-container-scan@v3
+        with:
+          image: ${{ steps.meta.outputs.tags }}
+
+      - name: Filter out non-critical vulns
+        run: |
+          mv /tmp/container-scan*/ /tmp/container-scan/ && cat /tmp/container-scan/result.json | jq '.Results[0].Vulnerabilities[] | select(.Severity=="CRITICAL")' > /tmp/container-scan/critical.json
+      
+      - name: Archive container scan results
+        uses: actions/upload-artifact@v3
+        with:
+          name: container-scan-results
+          path: | 
+            /tmp/container-scan*
