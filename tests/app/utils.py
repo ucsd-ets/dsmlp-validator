@@ -30,6 +30,10 @@ def gen_request(gpu_req: int = 0, gpu_lim: int = 0, low_priority: bool = False, 
     if course is not None:
         labels["dsmlp/course"] = course
 
+    metadata = None
+    if labels != {}:
+        metadata = ObjectMeta(labels=labels)
+
     sec_context = None
     if run_as_user is not None or run_as_group is not None or fs_group is not None or supplemental_groups is not None:
         sec_context = PodSecurityContext(
@@ -52,7 +56,7 @@ def gen_request(gpu_req: int = 0, gpu_lim: int = 0, low_priority: bool = False, 
         uid=uid,
         namespace=username,
         object=Object(
-            metadata=ObjectMeta(labels=labels),
+            metadata=metadata,
             spec=PodSpec(
                 containers=containers,
                 priorityClassName=p_class,

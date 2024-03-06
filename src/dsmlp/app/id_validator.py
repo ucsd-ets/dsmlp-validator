@@ -12,12 +12,13 @@ import jsonify
 from dsmlp.plugin.logger import Logger
 from dsmlp.app.types import *
 
+
 class IDValidator(ComponentValidator):
-    
+
     def __init__(self, awsed: AwsedClient, logger: Logger) -> None:
         self.awsed = awsed
         self.logger = logger
-    
+
     def validate_pod(self, request: Request):
         """
         Validate pods for namespaces with the 'k8s-sync' label
@@ -28,7 +29,8 @@ class IDValidator(ComponentValidator):
 #        if 'k8s-sync' in namespace.labels:
         user = self.awsed.describe_user(username)
         if not user:
-            raise ValidationFailure(f"namespace: no AWSEd user found with username {username}")
+            raise ValidationFailure(
+                f"namespace: no AWSEd user found with username {username}")
         allowed_uid = user.uid
         allowed_courses = user.enrollments
 
@@ -39,15 +41,20 @@ class IDValidator(ComponentValidator):
 
         metadata = request.object.metadata
         spec = request.object.spec
-        self.validate_course_enrollment(allowed_courses, metadata.labels)
-        self.validate_pod_security_context(allowed_uid, allowed_gids, spec.securityContext)
+
+        if metadata is not None and metadata.labels is not None:
+            self.validate_course_enrollment(allowed_courses, metadata.labels)
+
+        self.validate_pod_security_context(
+            allowed_uid, allowed_gids, spec.securityContext)
         self.validate_containers(allowed_uid, allowed_gids, spec)
 
     def validate_course_enrollment(self, allowed_courses: List[str], labels: Dict[str, str]):
         if not 'dsmlp/course' in labels:
             return
         if not labels['dsmlp/course'] in allowed_courses:
-            raise ValidationFailure(f"metadata.labels: dsmlp/course must be in range {allowed_courses}")
+            raise ValidationFailure(
+                f"metadata.labels: dsmlp/course must be in range {allowed_courses}")
 
     def validate_pod_security_context(
             self,
@@ -59,18 +66,22 @@ class IDValidator(ComponentValidator):
             return
 
         if securityContext.runAsUser is not None and authorized_uid != securityContext.runAsUser:
-            raise ValidationFailure(f"spec.securityContext: uid must be in range [{authorized_uid}]")
+            raise ValidationFailure(
+                f"spec.securityContext: uid must be in range [{authorized_uid}]")
 
         if securityContext.runAsGroup is not None and securityContext.runAsGroup not in allowed_teams:
-            raise ValidationFailure(f"spec.securityContext: gid must be in range {allowed_teams}")
+            raise ValidationFailure(
+                f"spec.securityContext: gid must be in range {allowed_teams}")
 
         if securityContext.fsGroup is not None and securityContext.fsGroup not in allowed_teams:
-            raise ValidationFailure(f"spec.securityContext: gid must be in range {allowed_teams}")
+            raise ValidationFailure(
+                f"spec.securityContext: gid must be in range {allowed_teams}")
 
         if securityContext.supplementalGroups is not None:
             for sgroup in securityContext.supplementalGroups:
                 if not sgroup in allowed_teams:
-                    raise ValidationFailure(f"spec.securityContext: gid must be in range {allowed_teams}")
+                    raise ValidationFailure(
+                        f"spec.securityContext: gid must be in range {allowed_teams}")
 
     def validate_containers(
             self,
@@ -81,8 +92,10 @@ class IDValidator(ComponentValidator):
         """
         Validate the security context of containers and initContainers
         """
-        self.validate_security_contexts(authorized_uid, allowed_teams, spec.containers, "containers")
-        self.validate_security_contexts(authorized_uid, allowed_teams, spec.initContainers, "initContainers")
+        self.validate_security_contexts(
+            authorized_uid, allowed_teams, spec.containers, "containers")
+        self.validate_security_contexts(
+            authorized_uid, allowed_teams, spec.initContainers, "initContainers")
 
     def validate_security_contexts(
             self, authorized_uid: int, allowed_teams: List[int],
@@ -100,7 +113,8 @@ class IDValidator(ComponentValidator):
             if securityContext is None:
                 continue
 
-            self.validate_security_context(authorized_uid, allowed_teams, securityContext, f"{context}[{i}]")
+            self.validate_security_context(
+                authorized_uid, allowed_teams, securityContext, f"{context}[{i}]")
 
     def validate_security_context(
             self,
