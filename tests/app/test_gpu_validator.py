@@ -66,6 +66,13 @@ class TestGPUValidator:
             gen_request(gpu_lim=6), expected=False, message="GPU quota exceeded. Wanted 6 but with 5 already in use, the quota of 10 would be exceeded."
         )
 
+    # Tests pod overcap
+    def test_low_priority_overcap(self):
+        self.kube_client.set_existing_gpus('user10', 11)
+
+        self.try_validate(
+            gen_request(), expected=True)
+
     def try_validate(self, json, expected: bool, message: str = None):
         try_val_with_component(GPUValidator(
             self.kube_client, self.logger), json, expected, message)
