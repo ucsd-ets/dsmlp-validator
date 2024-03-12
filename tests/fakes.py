@@ -39,15 +39,25 @@ class FakeAwsedClient(AwsedClient):
 class FakeKubeClient(KubeClient):
     def __init__(self):
         self.namespaces: TypedDict[str, Namespace] = {}
+        self.existing_gpus: TypedDict[str, int] = {}
 
     def get_namespace(self, name: str) -> Namespace:
         try:
             return self.namespaces[name]
         except KeyError:
             raise UnsuccessfulRequest()
+    
+    def get_gpus_in_namespace(self, name: str) -> int:
+        try:
+            return self.existing_gpus[name]
+        except KeyError:
+            return 0
 
     def add_namespace(self, name: str, namespace: Namespace):
         self.namespaces[name] = namespace
+    
+    def set_existing_gpus(self, name: str, gpus: int):
+        self.existing_gpus[name] = gpus
 
 
 class FakeLogger(Logger):

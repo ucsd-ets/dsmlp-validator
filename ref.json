@@ -1,0 +1,621 @@
+{
+    "kind": "AdmissionReview",
+    "apiVersion": "admission.k8s.io/v1",
+    "request": {
+        "uid": "ae0f37ca-7e96-4d80-9467-691bf5c7ef8c",
+        "kind": {
+            "group": "",
+            "version": "v1",
+            "kind": "Pod"
+        },
+        "resource": {
+            "group": "",
+            "version": "v1",
+            "resource": "pods"
+        },
+        "requestKind": {
+            "group": "",
+            "version": "v1",
+            "kind": "Pod"
+        },
+        "requestResource": {
+            "group": "",
+            "version": "v1",
+            "resource": "pods"
+        },
+        "name": "ghan-6495",
+        "namespace": "ghan",
+        "operation": "CREATE",
+        "userInfo": {
+            "username": "ghan",
+            "uid": "42",
+            "groups": [
+                "system:authenticated"
+            ]
+        },
+        "object": {
+            "kind": "Pod",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "ghan-6495",
+                "namespace": "ghan",
+                "uid": "3121b7b1-6212-4f34-9bca-2665cc180fe8",
+                "creationTimestamp": "2024-01-17T02:05:35Z",
+                "labels": {
+                    "dsmlp/course": "CSE160_WI24_A00",
+                    "dsmlp/user": "ghan",
+                    "svcreg": "true"
+                },
+                "managedFields": [
+                    {
+                        "manager": "kubectl-create",
+                        "operation": "Update",
+                        "apiVersion": "v1",
+                        "time": "2024-01-17T02:05:33Z",
+                        "fieldsType": "FieldsV1",
+                        "fieldsV1": {
+                            "f:metadata": {
+                                "f:labels": {
+                                    ".": {},
+                                    "f:dsmlp/course": {},
+                                    "f:dsmlp/user": {},
+                                    "f:svcreg": {}
+                                }
+                            },
+                            "f:spec": {
+                                "f:activeDeadlineSeconds": {},
+                                "f:affinity": {
+                                    ".": {},
+                                    "f:nodeAffinity": {
+                                        ".": {},
+                                        "f:preferredDuringSchedulingIgnoredDuringExecution": {}
+                                    }
+                                },
+                                "f:containers": {
+                                    "k:{\"name\":\"c1\"}": {
+                                        ".": {},
+                                        "f:command": {},
+                                        "f:env": {
+                                            ".": {},
+                                            "k:{\"name\":\"DOCKER_IMAGE\"}": {
+                                                ".": {},
+                                                "f:name": {},
+                                                "f:value": {}
+                                            },
+                                            "k:{\"name\":\"HOME\"}": {
+                                                ".": {},
+                                                "f:name": {},
+                                                "f:value": {}
+                                            },
+                                            "k:{\"name\":\"KUBERNETES_LIMIT_CPU\"}": {
+                                                ".": {},
+                                                "f:name": {},
+                                                "f:valueFrom": {
+                                                    ".": {},
+                                                    "f:resourceFieldRef": {}
+                                                }
+                                            },
+                                            "k:{\"name\":\"KUBERNETES_LIMIT_MEM\"}": {
+                                                ".": {},
+                                                "f:name": {},
+                                                "f:valueFrom": {
+                                                    ".": {},
+                                                    "f:resourceFieldRef": {}
+                                                }
+                                            },
+                                            "k:{\"name\":\"KUBERNETES_NODE_NAME\"}": {
+                                                ".": {},
+                                                "f:name": {},
+                                                "f:valueFrom": {
+                                                    ".": {},
+                                                    "f:fieldRef": {}
+                                                }
+                                            },
+                                            "k:{\"name\":\"LD_LIBRARY_PATH\"}": {
+                                                ".": {},
+                                                "f:name": {},
+                                                "f:value": {}
+                                            },
+                                            "k:{\"name\":\"LOGNAME\"}": {
+                                                ".": {},
+                                                "f:name": {},
+                                                "f:value": {}
+                                            },
+                                            "k:{\"name\":\"MEM_LIMIT\"}": {
+                                                ".": {},
+                                                "f:name": {},
+                                                "f:valueFrom": {
+                                                    ".": {},
+                                                    "f:resourceFieldRef": {}
+                                                }
+                                            },
+                                            "k:{\"name\":\"SHELL\"}": {
+                                                ".": {},
+                                                "f:name": {},
+                                                "f:value": {}
+                                            },
+                                            "k:{\"name\":\"TERM\"}": {
+                                                ".": {},
+                                                "f:name": {},
+                                                "f:value": {}
+                                            },
+                                            "k:{\"name\":\"TZ\"}": {
+                                                ".": {},
+                                                "f:name": {},
+                                                "f:value": {}
+                                            },
+                                            "k:{\"name\":\"USER\"}": {
+                                                ".": {},
+                                                "f:name": {},
+                                                "f:value": {}
+                                            },
+                                            "k:{\"name\":\"XDG_CACHE_HOME\"}": {
+                                                ".": {},
+                                                "f:name": {},
+                                                "f:value": {}
+                                            }
+                                        },
+                                        "f:image": {},
+                                        "f:imagePullPolicy": {},
+                                        "f:name": {},
+                                        "f:resources": {
+                                            ".": {},
+                                            "f:limits": {
+                                                ".": {},
+                                                "f:cpu": {},
+                                                "f:memory": {},
+                                                "f:nvidia.com/gpu": {}
+                                            },
+                                            "f:requests": {
+                                                ".": {},
+                                                "f:cpu": {},
+                                                "f:memory": {},
+                                                "f:nvidia.com/gpu": {}
+                                            }
+                                        },
+                                        "f:terminationMessagePath": {},
+                                        "f:terminationMessagePolicy": {},
+                                        "f:volumeMounts": {
+                                            ".": {},
+                                            "k:{\"mountPath\":\"/public\"}": {
+                                                ".": {},
+                                                "f:mountPath": {},
+                                                "f:name": {},
+                                                "f:subPath": {}
+                                            },
+                                            "k:{\"mountPath\":\"/scratch\"}": {
+                                                ".": {},
+                                                "f:mountPath": {},
+                                                "f:name": {}
+                                            },
+                                            "k:{\"mountPath\":\"/teams\"}": {
+                                                ".": {},
+                                                "f:mountPath": {},
+                                                "f:name": {},
+                                                "f:subPath": {}
+                                            }
+                                        },
+                                        "f:workingDir": {}
+                                    }
+                                },
+                                "f:dnsPolicy": {},
+                                "f:enableServiceLinks": {},
+                                "f:priorityClassName": {},
+                                "f:restartPolicy": {},
+                                "f:schedulerName": {},
+                                "f:securityContext": {
+                                    ".": {},
+                                    "f:runAsUser": {}
+                                },
+                                "f:terminationGracePeriodSeconds": {},
+                                "f:volumes": {
+                                    ".": {},
+                                    "k:{\"name\":\"scratch\"}": {
+                                        ".": {},
+                                        "f:emptyDir": {},
+                                        "f:name": {}
+                                    }
+                                }
+                            }
+                        }
+                    }
+                ]
+            },
+            "spec": {
+                "volumes": [
+                    {
+                        "name": "scratch",
+                        "emptyDir": {}
+                    },
+                    {
+                        "name": "kube-api-access-xm22l",
+                        "projected": {
+                            "sources": [
+                                {
+                                    "serviceAccountToken": {
+                                        "expirationSeconds": 3607,
+                                        "path": "token"
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "name": "kube-root-ca.crt",
+                                        "items": [
+                                            {
+                                                "key": "ca.crt",
+                                                "path": "ca.crt"
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "downwardAPI": {
+                                        "items": [
+                                            {
+                                                "path": "namespace",
+                                                "fieldRef": {
+                                                    "apiVersion": "v1",
+                                                    "fieldPath": "metadata.namespace"
+                                                }
+                                            }
+                                        ]
+                                    }
+                                }
+                            ],
+                            "defaultMode": 420
+                        }
+                    },
+                    {
+                        "name": "patches",
+                        "nfs": {
+                            "server": "its-dsmlp-fs01.ucsd.edu",
+                            "path": "/export/apps/patches"
+                        }
+                    },
+                    {
+                        "name": "support",
+                        "emptyDir": {}
+                    },
+                    {
+                        "name": "dsmlp-datasets",
+                        "nfs": {
+                            "server": "its-dsmlp-fs01.ucsd.edu",
+                            "path": "/export/datasets"
+                        }
+                    },
+                    {
+                        "name": "dshm",
+                        "emptyDir": {
+                            "medium": "Memory"
+                        }
+                    },
+                    {
+                        "name": "nbmessages",
+                        "nfs": {
+                            "server": "its-dsmlp-fs01.ucsd.edu",
+                            "path": "/export/nbmessages"
+                        }
+                    },
+                    {
+                        "name": "dsmlp-datasets-2",
+                        "nfs": {
+                            "server": "its-dsmlp-fs02.ucsd.edu",
+                            "path": "/export/datasets"
+                        }
+                    },
+                    {
+                        "name": "course-workspace",
+                        "nfs": {
+                            "server": "its-dsmlp-fs04.ucsd.edu",
+                            "path": "/export/workspaces/CSE160_WI24_A00"
+                        }
+                    },
+                    {
+                        "name": "home",
+                        "persistentVolumeClaim": {
+                            "claimName": "home"
+                        }
+                    }
+                ],
+                "initContainers": [
+                    {
+                        "name": "init-support",
+                        "image": "ucsdets/k8s-support:stable",
+                        "command": [
+                            "/bin/sh",
+                            "-c"
+                        ],
+                        "args": [
+                            "cp -r /support/* /opt/k8s-support ; ls -al /opt/k8s-support"
+                        ],
+                        "resources": {
+                            "limits": {
+                                "cpu": "500m",
+                                "memory": "256M"
+                            },
+                            "requests": {
+                                "cpu": "500m",
+                                "memory": "256M"
+                            }
+                        },
+                        "volumeMounts": [
+                            {
+                                "name": "support",
+                                "mountPath": "/opt/k8s-support"
+                            },
+                            {
+                                "name": "kube-api-access-xm22l",
+                                "readOnly": true,
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount"
+                            }
+                        ],
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "imagePullPolicy": "IfNotPresent"
+                    }
+                ],
+                "containers": [
+                    {
+                        "name": "c1",
+                        "image": "ucsdets/nvcr-cuda:latest",
+                        "command": [
+                            "/opt/k8s-support/bin/tini",
+                            "--",
+                            "/opt/k8s-support/bin/initenv-createhomedir.sh",
+                            "/opt/k8s-support/bin/pause"
+                        ],
+                        "workingDir": "/home/ghan",
+                        "env": [
+                            {
+                                "name": "KUBERNETES_NODE_NAME",
+                                "valueFrom": {
+                                    "fieldRef": {
+                                        "apiVersion": "v1",
+                                        "fieldPath": "spec.nodeName"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "KUBERNETES_LIMIT_CPU",
+                                "valueFrom": {
+                                    "resourceFieldRef": {
+                                        "containerName": "c1",
+                                        "resource": "limits.cpu",
+                                        "divisor": "0"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "KUBERNETES_LIMIT_MEM",
+                                "valueFrom": {
+                                    "resourceFieldRef": {
+                                        "containerName": "c1",
+                                        "resource": "limits.memory",
+                                        "divisor": "0"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "MEM_LIMIT",
+                                "valueFrom": {
+                                    "resourceFieldRef": {
+                                        "containerName": "c1",
+                                        "resource": "limits.memory",
+                                        "divisor": "0"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "USER",
+                                "value": "ghan"
+                            },
+                            {
+                                "name": "LOGNAME",
+                                "value": "ghan"
+                            },
+                            {
+                                "name": "HOME",
+                                "value": "/home/ghan"
+                            },
+                            {
+                                "name": "XDG_CACHE_HOME",
+                                "value": "/tmp/xdg-cache"
+                            },
+                            {
+                                "name": "TERM",
+                                "value": "xterm"
+                            },
+                            {
+                                "name": "TZ",
+                                "value": "PST8PDT"
+                            },
+                            {
+                                "name": "SHELL",
+                                "value": "/bin/bash"
+                            },
+                            {
+                                "name": "DOCKER_IMAGE",
+                                "value": "ucsdets/nvcr-cuda:latest"
+                            },
+                            {
+                                "name": "LD_LIBRARY_PATH",
+                                "value": "/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/opt/conda/pkgs/cudatoolkit-11.2.2-he111cf0_8/lib:/opt/conda/pkgs/cudnn-8.2.1.32-h86fa8c9_0/lib"
+                            },
+                            {
+                                "name": "HOME",
+                                "value": "/home/ghan"
+                            },
+                            {
+                                "name": "NBGRADER_COURSEID",
+                                "value": "CSE160_WI24_A00"
+                            },
+                            {
+                                "name": "LOGNAME",
+                                "value": "ghan"
+                            },
+                            {
+                                "name": "NB_UMASK",
+                                "value": "0007"
+                            }
+                        ],
+                        "resources": {
+                            "limits": {
+                                "cpu": "1",
+                                "memory": "1Gi",
+                                "nvidia.com/gpu": "1"
+                            },
+                            "requests": {
+                                "cpu": "0",
+                                "memory": "0",
+                                "nvidia.com/gpu": "1"
+                            }
+                        },
+                        "volumeMounts": [
+                            {
+                                "name": "scratch",
+                                "mountPath": "/scratch"
+                            },
+                            {
+                                "name": "course-workspace",
+                                "mountPath": "/public",
+                                "subPath": "public"
+                            },
+                            {
+                                "name": "course-workspace",
+                                "mountPath": "/teams",
+                                "subPath": "teams"
+                            },
+                            {
+                                "name": "kube-api-access-xm22l",
+                                "readOnly": true,
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount"
+                            },
+                            {
+                                "name": "patches",
+                                "mountPath": "/usr/bin/git",
+                                "subPath": "git_2.25.1-1ubuntu3.10_amd64.focal/unpack/usr/bin/git"
+                            },
+                            {
+                                "name": "patches",
+                                "mountPath": "/usr/bin/git-shell",
+                                "subPath": "git_2.25.1-1ubuntu3.10_amd64.focal/unpack/usr/bin/git-shell"
+                            },
+                            {
+                                "name": "patches",
+                                "mountPath": "/usr/bin/git-core",
+                                "subPath": "git_2.25.1-1ubuntu3.10_amd64.focal/unpack/usr/bin/git-core"
+                            },
+                            {
+                                "name": "course-workspace",
+                                "mountPath": "/home/ghan",
+                                "subPath": "home/ghan"
+                            },
+                            {
+                                "name": "course-workspace",
+                                "mountPath": "/home/ghan/public",
+                                "subPath": "public"
+                            },
+                            {
+                                "name": "home",
+                                "mountPath": "/home/ghan/private"
+                            },
+                            {
+                                "name": "course-workspace",
+                                "mountPath": "/srv/nbgrader/CSE160_WI24_A00/exchange",
+                                "subPath": "apps/nbgrader/exchange"
+                            },
+                            {
+                                "name": "course-workspace",
+                                "mountPath": "/usr/local/etc/jupyter/nbgrader_config.py",
+                                "subPath": "apps/nbgrader/config/nbgrader_config.py"
+                            },
+                            {
+                                "name": "support",
+                                "mountPath": "/opt/k8s-support"
+                            },
+                            {
+                                "name": "dsmlp-datasets",
+                                "mountPath": "/datasets"
+                            },
+                            {
+                                "name": "dshm",
+                                "mountPath": "/dev/shm"
+                            },
+                            {
+                                "name": "nbmessages",
+                                "mountPath": "/srv/nbmessages"
+                            },
+                            {
+                                "name": "dsmlp-datasets-2",
+                                "mountPath": "/datasets-2"
+                            }
+                        ],
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "imagePullPolicy": "IfNotPresent"
+                    }
+                ],
+                "restartPolicy": "Never",
+                "terminationGracePeriodSeconds": 600,
+                "activeDeadlineSeconds": 21600,
+                "dnsPolicy": "ClusterFirst",
+                "serviceAccountName": "default",
+                "serviceAccount": "default",
+                "securityContext": {
+                    "runAsUser": 91481
+                },
+                "affinity": {
+                    "nodeAffinity": {
+                        "preferredDuringSchedulingIgnoredDuringExecution": [
+                            {
+                                "weight": 10,
+                                "preference": {
+                                    "matchExpressions": [
+                                        {
+                                            "key": "node-type",
+                                            "operator": "NotIn",
+                                            "values": [
+                                                "research"
+                                            ]
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                },
+                "schedulerName": "default-scheduler",
+                "tolerations": [
+                    {
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "effect": "NoExecute",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "effect": "NoExecute",
+                        "tolerationSeconds": 300
+                    }
+                ],
+                "priorityClassName": "normal",
+                "priority": 10,
+                "enableServiceLinks": true,
+                "preemptionPolicy": "PreemptLowerPriority"
+            },
+            "status": {
+                "phase": "Pending",
+                "qosClass": "Burstable"
+            }
+        },
+        "oldObject": null,
+        "dryRun": false,
+        "options": {
+            "kind": "CreateOptions",
+            "apiVersion": "meta.k8s.io/v1",
+            "fieldManager": "kubectl-create",
+            "fieldValidation": "Strict"
+        }
+    }
+}

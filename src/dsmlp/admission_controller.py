@@ -16,7 +16,7 @@ def create_app(test_config=None):
     logging.getLogger('waitress').setLevel(logging.INFO)
     logging.getLogger('dsmlp').setLevel(logging.DEBUG)
     logger = PythonLogger(None)
-    validator = Validator(factory.awsed_client, logger)
+    validator = Validator(factory.awsed_client, factory.kube_client, logger)
 
     @app.route('/validate', methods=['POST'])
     def validate_request():

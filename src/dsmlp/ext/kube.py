@@ -6,6 +6,8 @@ from kubernetes.client.rest import ApiException
 
 from dsmlp.plugin.kube import KubeClient, Namespace,  NotFound
 
+from dsmlp.app.config import *
+
 
 class DefaultKubeClient(KubeClient):
     """
@@ -16,11 +18,40 @@ class DefaultKubeClient(KubeClient):
         api = self.get_policy_api()
         v1namespace: V1Namespace = api.read_namespace(name=name)
         metadata: V1ObjectMeta = v1namespace.metadata
+
+        gpu_quota = 1
+        if metadata is not None and metadata.annotations is not None and GPU_LIMIT_ANNOTATION in metadata.annotations:
+            gpu_quota = int(metadata.annotations[GPU_LIMIT_ANNOTATION])
+
         return Namespace(
             name=metadata.name,
-            labels=metadata.labels)
+            labels=metadata.labels,
+            gpu_quota=gpu_quota)
+
+    def get_gpus_in_namespace(self, name: str) -> int:
+        api = self.get_policy_api()
+        V1Namespace: V1Namespace = api.read_namespace(name=name)
+        pods = api.list_namespaced_pod(namespace=name)
+
+        gpu_count = 0
+        for pod in pods.items:
+            for container in pod.spec.containers:
+                requested, limit = 0, 0
+                try:
+                    requested = int(container.resources.requests[GPU_LABEL])
+                except (KeyError, AttributeError, TypeError):
+                    pass
+                try:
+                    limit = int(container.resources.limits[GPU_LABEL])
+                except (KeyError, AttributeError, TypeError):
+                    pass
+
+                gpu_count += max(requested, limit)
+
+        return gpu_count
 
     # noinspection PyMethodMayBeStatic
+
     def get_policy_api(self) -> CoreV1Api:
         try:
             config.load_incluster_config()
