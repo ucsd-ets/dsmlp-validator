@@ -5,7 +5,7 @@ from typing import List, TypedDict, Dict
 
 from dacite import from_dict
 
-from dsmlp.plugin.awsed import AwsedClient,  ListTeamsResponse, UnsuccessfulRequest, UserResponse
+from dsmlp.plugin.awsed import AwsedClient,  ListTeamsResponse, UnsuccessfulRequest, UserResponse, UserGpuQuotaResponse
 from dsmlp.plugin.kube import KubeClient, Namespace, NotFound
 from dsmlp.plugin.logger import Logger
 
@@ -14,6 +14,7 @@ class FakeAwsedClient(AwsedClient):
     def __init__(self):
         self.teams: Dict[str, ListTeamsResponse] = {}
         self.users: Dict[str, UserResponse] = {}
+        self.user_gpu_quota: Dict[str, UserGpuQuotaResponse] = {}
 
     def list_user_teams(self, username: str) -> ListTeamsResponse:
         try:
@@ -28,7 +29,17 @@ class FakeAwsedClient(AwsedClient):
             return self.users[username]
         except KeyError:
             return None
-
+    
+    # Get user GPU quota. If user does not exist, return 0
+    def get_user_gpu_quota(self, username: str) -> UserGpuQuotaResponse:
+        try:
+            return self.user_gpu_quota[username]
+        except KeyError:
+            return 0
+        
+    def add_user_gpu_quota(self, username, gpu_quota: UserGpuQuotaResponse):
+        self.user_gpu_quota[username] = gpu_quota
+    
     def add_user(self, username, user: UserResponse):
         self.users[username] = user
 

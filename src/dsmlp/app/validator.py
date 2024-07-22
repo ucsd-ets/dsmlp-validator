@@ -19,7 +19,7 @@ class Validator:
     def __init__(self, awsed: AwsedClient, kube: KubeClient, logger: Logger) -> None:
         self.awsed = awsed
         self.logger = logger
-        self.component_validators = [IDValidator(awsed, logger), GPUValidator(kube, logger)]
+        self.component_validators = [IDValidator(awsed, logger), GPUValidator(awsed, kube, logger)]
 
     def validate_request(self, admission_review_json):
         self.logger.debug("request=" + json.dumps(admission_review_json, indent=2))

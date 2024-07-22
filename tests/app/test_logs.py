@@ -93,7 +93,31 @@ class TestLogs:
 
         assert_that(self.logger.messages, has_item(
             "INFO Allowed request username=user10 namespace=user10 uid=705ab4f5-6393-11e8-b7cc-42010a800002"))
-
+        
+    # def test_gpu_quota_request(self):
+    #     self.awsed_client.add_user_gpu_quota('user10', 10)
+    #     self.awsed_client.get_user_gpu_quota('user10')
+        
+    #     response = self.when_validate(
+    #         {
+    #             "request": {
+    #                 "uid": "705ab4f5-6393-11e8-b7cc-42010a800002",
+    #                 "namespace": "user10",
+    #                 "userInfo": {
+    #                     "username": "user10"
+    #                 },
+    #                 "object": {
+    #                     "metadata": {
+    #                         "labels": {}
+    #                     },
+    #                     "spec": {
+    #                         "containers": [{}]
+    #                     }
+    #                 }
+    #             }
+    #         }
+    #     )
+        
     def when_validate(self, json):
         validator = Validator(self.awsed_client, self.kube_client, self.logger)
         response = validator.validate_request(json)
