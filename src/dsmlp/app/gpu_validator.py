@@ -16,9 +16,10 @@ from dsmlp.app.config import *
 
 class GPUValidator(ComponentValidator):
 
-    def __init__(self, kube: KubeClient, logger: Logger) -> None:
+    def __init__(self, awsed: AwsedClient, kube: KubeClient, logger: Logger) -> None:
         self.kube = kube
         self.logger = logger
+        self.awsed = awsed
 
     def validate_pod(self, request: Request):
         """
@@ -32,7 +33,20 @@ class GPUValidator(ComponentValidator):
 
         namespace = self.kube.get_namespace(request.namespace)
         curr_gpus = self.kube.get_gpus_in_namespace(request.namespace)
-
+        awsed_gpu_quota = self.awsed.get_user_gpu_quota(request.namespace)
+        """
+        Use AWSED GPU quota if it is not None and greater than 0 
+        else use namespace GPU quota if it is not None and greater than 0 
+        else use 1 as default
+        """
+    
+        gpu_quota = 1
+        if awsed_gpu_quota is not None and awsed_gpu_quota > 0:
+            gpu_quota = awsed_gpu_quota
+        elif namespace.gpu_quota is not None and namespace.gpu_quota > 0:
+            gpu_quota = namespace.gpu_quota
+            
+        # Calculate the number of GPUs requested for kube client
         utilized_gpus = 0
         for container in request.object.spec.containers:
             requested, limit = 0, 0
@@ -51,6 +65,7 @@ class GPUValidator(ComponentValidator):
         if utilized_gpus == 0:
             return
 
-        if utilized_gpus + curr_gpus > namespace.gpu_quota:
+        # Check if the total number of utilized GPUs exceeds the GPU quota
+        if utilized_gpus + curr_gpus > gpu_quota:
             raise ValidationFailure(
-                f"GPU quota exceeded. Wanted {utilized_gpus} but with {curr_gpus} already in use, the quota of {namespace.gpu_quota} would be exceeded.")
+                f"GPU quota exceeded. Wanted {utilized_gpus} but with {curr_gpus} already in use, the quota of {gpu_quota} would be exceeded.")
