@@ -136,3 +136,6 @@ class TestGPUValidator:
         self.try_validate(
             gen_request(gpu_req=6, username='user11'), expected=True, message="GPU quota exceeded. Wanted 6 but with 5 already in use, the quota of 18 would be exceeded."
         )
+        
+    # --- Modular / Unit Testing for Validate Pod ---
+    def test
