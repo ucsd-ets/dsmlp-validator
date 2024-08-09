@@ -21,7 +21,7 @@ class GPUValidator(ComponentValidator):
         self.kube = kube
         self.logger = logger
 
-    def get_ultilized_gpu(self, request: Request):
+    def calculate_utilized_gpu(self, request: Request):
         # Calculate the number of GPUs requested for kube client
         utilized_gpus = 0
         for container in request.object.spec.containers:
@@ -37,16 +37,14 @@ class GPUValidator(ComponentValidator):
             
             utilized_gpus += max(requested, limit)
         
-        # Short circuit if no GPUs requested (permits overcap) or return
-        if utilized_gpus == 0:
-            raise ValueError("Error: No GPUs requested.")
         return utilized_gpus
     
-    def get_gpu_quota(self, awsed_quota, kube_client_quota):
+    def determine_gpu_quota(self, awsed_quota, kube_client_quota):
         """
-        Use AWSED GPU quota if it is not None and greater than 0 
-        else use namespace GPU quota if it is not None and greater than 0 
-        else use 1 as default
+        Determine the GPU quota to be used based on AWSED GPU quota and namespace GPU quota.
+        If AWSED GPU quota is not None and greater than 0, use it.
+        If AWSED GPU quota is None or 0, check if namespace GPU quota is not None and greater than 0, use it.
+        If both AWSED GPU quota and namespace GPU quota are None or 0, use 1 as the default GPU quota.
         """
         
         default_gpu_quota = 1
@@ -71,12 +69,15 @@ class GPUValidator(ComponentValidator):
         curr_gpus = self.kube.get_gpus_in_namespace(request.namespace)
         awsed_gpu_quota = self.awsed.get_user_gpu_quota(request.namespace)
         
-        # check ultilized gpu
-        utilized_gpus = self.get_ultilized_gpu(request=request)
+        # check utilized gpu
+        utilized_gpus = self.calculate_utilized_gpu(request=request)
         
         # request gpu_quota from method
-        gpu_quota = self.get_gpu_quota(awsed_gpu_quota, namespace.gpu_quota)
+        gpu_quota = self.determine_gpu_quota(awsed_gpu_quota, namespace.gpu_quota)
         
+        # Short circuit if no GPUs requested (permits overcap) or return
+        if utilized_gpus == 0:
+            return
         # Check if the total number of utilized GPUs exceeds the GPU quota
         if utilized_gpus + curr_gpus > gpu_quota:
             raise ValidationFailure(

@@ -1,6 +1,6 @@
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
-from typing import List
+from typing import List, Dict, Any
 
 
 @dataclass
@@ -19,8 +19,13 @@ class UserResponse:
     enrollments: List[str]
 
 @dataclass
-class UserGpuQuotaResponse:
-    gpu_quota: int
+class Quota:
+    user: str
+    resources: Dict[str, Any]
+    
+@dataclass
+class UserQuotaResponse:
+    quota: Quota
 
 class AwsedClient(metaclass=ABCMeta):
     @abstractmethod
@@ -33,8 +38,8 @@ class AwsedClient(metaclass=ABCMeta):
         pass
     
     @abstractmethod
-    def get_user_gpu_quota(self, username: str) -> UserGpuQuotaResponse:
-        # Return the gpu quota of a user
+    def get_user_gpu_quota(self, username: str) -> UserQuotaResponse:
+        # Return the quota (DICT) of a user
         pass
 
 class UnsuccessfulRequest(Exception):

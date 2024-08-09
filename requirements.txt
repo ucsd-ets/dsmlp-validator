@@ -8,4 +8,4 @@ requests_mock
 dataclasses-json
 python-dotenv
 pytest
-git+https://github.com/ucsd-ets/awsed_python_client.git@2024.1.2-RC1
+git+https://github.com/ucsd-ets/awsed_python_client.git@2024.2.1-RC1

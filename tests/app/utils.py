@@ -82,4 +82,7 @@ def try_val_with_component(validator: Validator, json, expected: bool, message: 
     except Exception as e:
         if expected:
             raise AssertionError(f"Expected no exception but got {e}")
-        assert_that(e.message, equal_to(message))
+        assert_that(str(e), equal_to(message))
+        actual_message = str(e)
+        print(f"Actual exception message: {actual_message}")
+        assert_that(actual_message, equal_to(message))

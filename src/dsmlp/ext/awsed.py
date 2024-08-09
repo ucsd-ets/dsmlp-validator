@@ -3,7 +3,7 @@ import os
 import requests
 from dacite import from_dict
 
-from dsmlp.plugin.awsed import AwsedClient, ListTeamsResponse, TeamJson, UnsuccessfulRequest, UserResponse, UserGpuQuotaResponse
+from dsmlp.plugin.awsed import AwsedClient, ListTeamsResponse, TeamJson, UnsuccessfulRequest, UserResponse, UserQuotaResponse, Quota
 
 import awsed.client
 import awsed.types
@@ -28,12 +28,14 @@ class ExternalAwsedClient(AwsedClient):
             
         return ListTeamsResponse(teams=teams)
     
-    # Fetch user's GPU quota with AWSED Api and assign to UserGpuQuotaResponse object
-    def get_user_gpu_quota(self, username: str) -> UserGpuQuotaResponse:
+    # Fetch user's GPU quota with AWSED Api and assign to UserQuotaResponse object
+    def get_user_gpu_quota(self, username: str) -> UserQuotaResponse:
         try:
-            usrGpuQuota = self.client.fetch_user_gpu_quota(username)
+            usrGpuQuota = self.client.get_user_quota(username)
             if not usrGpuQuota:
                 return None
-            return UserGpuQuotaResponse(gpu_quota=usrGpuQuota.gpuQuota)
+            gpu_quota = usrGpuQuota.get("gpu", 0)
+            quota = Quota(user=username, resources=gpu_quota)
+            return UserQuotaResponse(quota=quota)
         except:
             return None

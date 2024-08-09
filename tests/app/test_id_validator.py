@@ -3,7 +3,7 @@ from operator import contains
 from dsmlp.app.types import *
 from dsmlp.app.id_validator import IDValidator
 from dsmlp.app.validator import Validator
-from dsmlp.plugin.awsed import ListTeamsResponse, TeamJson, UserResponse
+from dsmlp.plugin.awsed import ListTeamsResponse, TeamJson, UserResponse, UserQuotaResponse, Quota
 from dsmlp.plugin.kube import Namespace
 from hamcrest import assert_that, contains_inanyorder, equal_to, has_item
 from tests.app.utils import gen_request, try_val_with_component
