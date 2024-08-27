@@ -52,6 +52,7 @@ class GPUValidator(ComponentValidator):
             default_gpu_quota = awsed_quota
         elif kube_client_quota is not None and kube_client_quota > 0:
             default_gpu_quota = kube_client_quota
+            
         return default_gpu_quota
 
     def validate_pod(self, request: Request):

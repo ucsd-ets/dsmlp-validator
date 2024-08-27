@@ -7,7 +7,10 @@ from dsmlp.plugin.awsed import AwsedClient, ListTeamsResponse, TeamJson, Unsucce
 
 import awsed.client
 import awsed.types
+import logging
 
+# added logging to check if API has an error getting GPU quota
+logging.basicConfig(level=logging.ERROR, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 class ExternalAwsedClient(AwsedClient): 
     def __init__(self):
         self.client = awsed.client.DefaultAwsedClient(endpoint=os.environ.get('AWSED_ENDPOINT'),
@@ -37,5 +40,6 @@ class ExternalAwsedClient(AwsedClient):
             gpu_quota = usrGpuQuota.get("gpu", 0)
             quota = Quota(user=username, resources=gpu_quota)
             return UserQuotaResponse(quota=quota)
-        except:
+        except Exception as e:
+            self.logger.error(f"Failed to fetch GPU quota for user {username}: {e}")
             return None
