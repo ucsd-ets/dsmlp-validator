@@ -92,7 +92,7 @@ class TestGPUValidator(unittest.TestCase):
     
     # Test correct response for get_user_gpu_quota method
     def test_awsed_gpu_quota_correct_response(self):
-        self.awsed_client.assign_user_gpu_quota('user11', {"gpu": 5})
+        self.awsed_client.assign_user_gpu_quota('user11', {"nvidia.com/gpu": 5})
         user_gpu_quota = self.awsed_client.get_user_gpu_quota('user11')
         assert_that(user_gpu_quota, equal_to(5))
         
@@ -123,7 +123,7 @@ class TestGPUValidator(unittest.TestCase):
         
         self.kube_client.set_existing_gpus('user11', 3)
         # add awsed quota
-        self.awsed_client.assign_user_gpu_quota('user11', {"gpu": 6})
+        self.awsed_client.assign_user_gpu_quota('user11', {"nvidia.com/gpu": 6})
         self.try_validate(
             gen_request(gpu_req=6, username='user11'), expected=False, message="GPU quota exceeded. Wanted 6 but with 3 already in use, the quota of 6 would be exceeded."
         )
@@ -133,7 +133,7 @@ class TestGPUValidator(unittest.TestCase):
         self.kube_client.add_namespace('user11', Namespace(
             name='user11', labels={'k8s-sync': 'true'}, gpu_quota=12))
         # add awsed quota
-        self.awsed_client.assign_user_gpu_quota('user11', {"gpu": 18})
+        self.awsed_client.assign_user_gpu_quota('user11', {"nvidia.com/gpu": 18})
         
         # set existing gpu = kube client quota
         self.kube_client.set_existing_gpus('user11', 12)
