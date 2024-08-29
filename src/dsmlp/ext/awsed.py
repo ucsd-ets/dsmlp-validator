@@ -37,13 +37,22 @@ class ExternalAwsedClient(AwsedClient):
     def get_user_gpu_quota(self, username: str) -> int:
         try:
             usrGpuQuota = self.client.get_user_quota(username)
+            self.logger.debug(f"usrGpuQuota: {usrGpuQuota}")  # Log the structure of usrGpuQuota
             if not usrGpuQuota:
                 return None
-            gpu_quota = usrGpuQuota['resources'].get("nvidia.com/gpu", "0")  # Access the correct attribute
-            gpu_quota = int(gpu_quota) # convert string to INT according AWSED JSON return
+            gpu_quota = usrGpuQuota.quota.resources.get("nvidia.com/gpu", "0")  # Access the correct attribute
             quota = Quota(user=username, resources={"nvidia.com/gpu": gpu_quota})
             response = UserQuotaResponse(quota=quota)
+            gpu_quota = int(gpu_quota) # convert string to INT according AWSED JSON return
             return gpu_quota
+        
+        # Debugging
+        except KeyError as e:
+            self.logger.error(f"Key error: {e}")
+            return None
+        except ValueError as e:
+            self.logger.error(f"Value error: {e}")
+            return None
         except Exception as e:
             self.logger.error(f"Failed to fetch GPU quota for user {username}: {e}")
             return None
