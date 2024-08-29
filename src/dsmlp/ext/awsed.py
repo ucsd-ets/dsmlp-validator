@@ -15,6 +15,7 @@ class ExternalAwsedClient(AwsedClient):
     def __init__(self):
         self.client = awsed.client.DefaultAwsedClient(endpoint=os.environ.get('AWSED_ENDPOINT'),
                                                       awsed_api_key=os.environ.get('AWSED_API_KEY'))
+        self.logger = logging.getLogger(__name__)  # Initialize the logger
 
     def describe_user(self, username: str) -> UserResponse:
         usrResultJson = self.client.describe_user(username)
