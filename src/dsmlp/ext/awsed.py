@@ -39,8 +39,8 @@ class ExternalAwsedClient(AwsedClient):
             usrGpuQuota = self.client.get_user_quota(username)
             if not usrGpuQuota:
                 return None
-            gpu_quota = usrGpuQuota.get("nvidia.com/gpu", 0)
-            quota = Quota(user=username, resources=gpu_quota)
+            gpu_quota = usrGpuQuota['resources'].get("nvidia.com/gpu", 0)  # Access the correct attribute
+            quota = Quota(user=username, resources={"nvidia.com/gpu": gpu_quota})
             return UserQuotaResponse(quota=quota)
         except Exception as e:
             self.logger.error(f"Failed to fetch GPU quota for user {username}: {e}")
