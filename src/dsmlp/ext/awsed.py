@@ -40,10 +40,9 @@ class ExternalAwsedClient(AwsedClient):
             self.logger.debug(f"usrGpuQuota: {usrGpuQuota}")  # Log the structure of usrGpuQuota
             if not usrGpuQuota:
                 return None
-            gpu_quota = usrGpuQuota.quota.resources.get("nvidia.com/gpu", "0")  # Access the correct attribute
-            quota = Quota(user=username, resources={"nvidia.com/gpu": gpu_quota})
+            gpu_quota = usrGpuQuota.quota.resources.get("gpu", 0)  # Access the correct attribute
+            quota = Quota(user=username, resources={"gpu": gpu_quota})
             response = UserQuotaResponse(quota=quota)
-            gpu_quota = int(gpu_quota) # convert string to INT according AWSED JSON return
             return gpu_quota
         
         # Debugging

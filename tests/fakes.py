@@ -34,7 +34,7 @@ class FakeAwsedClient(AwsedClient):
     def get_user_gpu_quota(self, username: str) -> int:
         try:
             user_quota_response = self.user_quota[username]
-            return user_quota_response.quota.resources.get("nvidia.com/gpu", 0)
+            return user_quota_response.quota.resources.get("gpu", 0)
         except KeyError:
             return 0
         
