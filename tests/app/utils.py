@@ -6,9 +6,13 @@ from typing import List
 
 
 def gen_request(gpu_req: int = 0, gpu_lim: int = 0, low_priority: bool = False, uid: str = "705ab4f5-6393-11e8-b7cc-42010a800002", course: str = None,
-                run_as_user: int = None, run_as_group: int = None, fs_group: int = None, supplemental_groups: List[int] = None, username: str = "user10", has_container: bool = True,
+                run_as_user: int = None, run_as_group: int = None, fs_group: int = None, supplemental_groups: List[int] = None, username: str = None, has_container: bool = True,
                 container_override: List[Container] = None, init_containers: List[Container] = None) -> Request:
-
+    
+    # add default username is user10 unless specified during testing
+    if username is None:
+        username = 'user10'
+        
     res_req = None
     if gpu_req > 0:
         if res_req is None:
@@ -78,4 +82,7 @@ def try_val_with_component(validator: Validator, json, expected: bool, message: 
     except Exception as e:
         if expected:
             raise AssertionError(f"Expected no exception but got {e}")
-        assert_that(e.message, equal_to(message))
+        assert_that(str(e), equal_to(message))
+        actual_message = str(e)
+        print(f"Actual exception message: {actual_message}")
+        assert_that(actual_message, equal_to(message))

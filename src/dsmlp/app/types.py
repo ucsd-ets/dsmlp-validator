@@ -4,6 +4,8 @@ from typing import List, Optional, Dict
 from dataclasses_json import dataclass_json
 from abc import ABCMeta, abstractmethod
 
+# Kubernetes API types
+
 @dataclass_json
 @dataclass
 class SecurityContext:

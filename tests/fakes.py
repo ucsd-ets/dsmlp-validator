@@ -1,11 +1,11 @@
 from collections.abc import Mapping
 from dataclasses import dataclass
 from os import path
-from typing import List, TypedDict, Dict
+from typing import List, TypedDict, Dict, Any
 
 from dacite import from_dict
 
-from dsmlp.plugin.awsed import AwsedClient,  ListTeamsResponse, UnsuccessfulRequest, UserResponse
+from dsmlp.plugin.awsed import AwsedClient,  ListTeamsResponse, UnsuccessfulRequest, UserResponse, UserQuotaResponse, Quota
 from dsmlp.plugin.kube import KubeClient, Namespace, NotFound
 from dsmlp.plugin.logger import Logger
 
@@ -14,6 +14,7 @@ class FakeAwsedClient(AwsedClient):
     def __init__(self):
         self.teams: Dict[str, ListTeamsResponse] = {}
         self.users: Dict[str, UserResponse] = {}
+        self.user_quota: Dict[str, UserQuotaResponse] = {}
 
     def list_user_teams(self, username: str) -> ListTeamsResponse:
         try:
@@ -28,7 +29,24 @@ class FakeAwsedClient(AwsedClient):
             return self.users[username]
         except KeyError:
             return None
-
+    
+    # Get user GPU quota. If user does not exist, return a value of 0
+    def get_user_gpu_quota(self, username: str) -> int:
+        try:
+            user_quota_response = self.user_quota[username]
+            return user_quota_response.quota.resources.get("gpu", 0)
+        except KeyError:
+            return 0
+        
+    # def add_user_gpu_quota(self, username: str, quota: UserQuotaResponse):
+    #     self.user_quota[username] = quota
+    
+    # Assign user GPU quota and create a UserQuotaResponse & Quota objects
+    def assign_user_gpu_quota(self, username: str, resources: Dict[str, Any]):
+        quota = Quota(user=username, resources=resources)
+        user_quota_response = UserQuotaResponse(quota=quota)
+        self.user_quota[username] = user_quota_response
+    
     def add_user(self, username, user: UserResponse):
         self.users[username] = user
 

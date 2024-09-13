@@ -5,7 +5,7 @@ jsonify
 waitress
 PyHamcrest
 requests_mock
-dataclasses-json
+dataclasses-json==0.6.4
 python-dotenv
 pytest
-git+https://github.com/ucsd-ets/awsed_python_client.git@2024.1.2-RC1
+git+https://github.com/ucsd-ets/awsed_python_client.git@2024.2.1-RC1
