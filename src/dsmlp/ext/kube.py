@@ -50,6 +50,24 @@ class DefaultKubeClient(KubeClient):
 
         return gpu_count
 
+    def get_tgpt_label(self, name: str) -> str:
+        api = self.get_policy_api()
+        v1namespace: V1Namespace = api.read_namespace(name=name)
+        metadata: V1ObjectMeta = v1namespace.metadata
+
+        if metadata is not None and metadata.labels is not None and "tgpt-validator" in metadata.labels:
+            return metadata.labels["tgpt-validator"]
+
+    # TODO: make arbitrary function of getting namespace labels.
+    def get_tgpt_uids(self, name: str) -> str:
+        api = self.get_policy_api()
+        v1namespace: V1Namespace = api.read_namespace(name=name)
+        metadata: V1ObjectMeta = v1namespace.metadata
+
+        # should be comma delimited, i.e. 2000,100,2,20
+        if metadata is not None and metadata.labels is not None and "permitted-uids" in metadata.labels:
+            return metadata.labels["permitted-uids"].split(',')
+
     # noinspection PyMethodMayBeStatic
 
     def get_policy_api(self) -> CoreV1Api:
