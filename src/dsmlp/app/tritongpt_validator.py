@@ -22,10 +22,12 @@ class TritonGPTValidator(ComponentValidator):
 
     def validate_pod(self, request: Request):
 
-        permitted_uids = self.kube.get_tgpt_uids()
+        namespace = self.kube.get_namespace(request.namespace)
+
+        permitted_uids = self.kube.get_tgpt_uids(namespace)
         requested_uid = request.object.spec.securityContext.runAsUser
 
         # if request.uid is not in kube.get_tgpt_uids
         # return validationfailure
-        if requested_uid not in permitted_uids:
-            raise ValidationFailure(f"TritonGPT Validator: user with {permitted_uids} attempted to run a pod as {requested_uid}. Pod denied.")
+        if str(requested_uid) not in permitted_uids:
+            raise ValidationFailure(f"TritonGPT Validator: user with access to UIDs {permitted_uids} attempted to run a pod as {requested_uid}. Pod denied.")
