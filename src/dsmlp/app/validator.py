@@ -57,15 +57,20 @@ class Validator:
 
         ### if tgpt-validator == enabled
         ### run special tritongpt validator that gets permitted UIDs from namespace instead of sicad
+        
         try:
             namespace = self.kube.get_namespace(request.namespace)
+            tgpt_label = self.kube.get_tgpt_label(namespace)
 
-            if(self.kube.get_tgpt_label(namespace) == "enabled"):
-                self.logger.info("Triton GPT Mode Activated. Only running TritonGPT Validator.")
-                TritonGPTValidator(self.kube, self.logger).validate_pod(request)
-                return
         except Exception as err:
-            self.logger.exception(err)
+            self.logger.info("Failed to evaluate TGPT label logic. Falling back on regular validator components. Error: " + str(err))
+            for component_validator in self.component_validators:
+                component_validator.validate_pod(request)
+
+        if(tgpt_label == "enabled"):
+            self.logger.info("Triton GPT Mode Activated. Only running TritonGPT Validator.")
+            TritonGPTValidator(self.kube, self.logger).validate_pod(request)
+            return
 
         for component_validator in self.component_validators:
             component_validator.validate_pod(request)

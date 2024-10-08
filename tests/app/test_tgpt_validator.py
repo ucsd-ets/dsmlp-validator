@@ -104,7 +104,7 @@ class TestTGPTValidator:
         )
 
         assert_that(self.logger.messages, has_item(
-            f"EXCEPTION TritonGPT Validator: user with access to UIDs ['30', '3000'] attempted to run a pod as 300. Pod denied."))
+            f"INFO Denied request username=system:kube-system namespace=user10 reason=TritonGPT Validator: user with access to UIDs ['30', '3000'] attempted to run a pod as 300. Pod denied. uid=705ab4f5-6393-11e8-b7cc-42010a800002"))
         
     def test_good_request_not_enabled_permitted_on(self):
         self.when_validate(
