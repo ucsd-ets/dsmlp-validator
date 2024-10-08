@@ -13,12 +13,15 @@ from dsmlp.plugin.logger import Logger
 from abc import ABCMeta, abstractmethod
 from dsmlp.app.id_validator import IDValidator
 from dsmlp.app.gpu_validator import GPUValidator
+from dsmlp.app.tritongpt_validator import TritonGPTValidator
 from dsmlp.app.types import *
+from dsmlp.app.config import *
 
 class Validator:
     def __init__(self, awsed: AwsedClient, kube: KubeClient, logger: Logger) -> None:
         self.awsed = awsed
         self.logger = logger
+        self.kube = kube
         self.component_validators = [IDValidator(awsed, logger), GPUValidator(awsed, kube, logger)]
 
     def validate_request(self, admission_review_json):
@@ -51,6 +54,24 @@ class Validator:
         return self.admission_response(request.uid, True, "Allowed")
 
     def validate_pod(self, request: Request):
+
+        ### if tgpt-validator == enabled
+        ### run special tritongpt validator that gets permitted UIDs from namespace instead of sicad
+        
+        try:
+            namespace = self.kube.get_namespace(request.namespace)
+            tgpt_label = self.kube.get_tgpt_label(namespace)
+
+        except Exception as err:
+            self.logger.info("Failed to evaluate TGPT label logic. Falling back on regular validator components. Error: " + str(err))
+            for component_validator in self.component_validators:
+                component_validator.validate_pod(request)
+
+        if(tgpt_label == "enabled"):
+            self.logger.info("Triton GPT Mode Activated. Only running TritonGPT Validator.")
+            TritonGPTValidator(self.kube, self.logger).validate_pod(request)
+            return
+
         for component_validator in self.component_validators:
             component_validator.validate_pod(request)
 

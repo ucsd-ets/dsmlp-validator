@@ -50,6 +50,15 @@ class DefaultKubeClient(KubeClient):
 
         return gpu_count
 
+    def get_tgpt_label(self, namespace) -> str:
+        return namespace.labels.get("tgt-validator","")
+
+    # TODO: make arbitrary function of getting namespace labels.
+    def get_tgpt_uids(self, namespace) -> str:
+
+        # should be comma delimited, i.e. 2000,100,2,20
+        return namespace.labels.get("permitted-uids", "").split(',')
+
     # noinspection PyMethodMayBeStatic
 
     def get_policy_api(self) -> CoreV1Api:

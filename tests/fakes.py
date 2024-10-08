@@ -77,6 +77,18 @@ class FakeKubeClient(KubeClient):
     def set_existing_gpus(self, name: str, gpus: int):
         self.existing_gpus[name] = gpus
 
+    def get_tgpt_label(self, namespace) -> str:
+        try:
+            return namespace.labels.get("tgpt-validator", "")
+        except KeyError:
+            raise UnsuccessfulRequest()
+
+    def get_tgpt_uids(self, namespace) -> str:
+        try:
+            return namespace.labels.get("permitted-uids").split(',')
+        except KeyError:
+            raise UnsuccessfulRequest()
+
 
 class FakeLogger(Logger):
     def __init__(self) -> None:
